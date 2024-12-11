@@ -18,6 +18,9 @@ import Text.Printf
 
 import System.Random
 
+import GHC.Generics
+import Data.Aeson ( ToJSON(..), FromJSON(..) )
+
 --------------------------------------------------------------------------------
 
 type F = Goldilocks
@@ -81,10 +84,22 @@ rootsOfUnity = listArray (0,32) $ map toF
 
 newtype Goldilocks 
   = Goldilocks Integer 
-  deriving Eq
+  deriving (Eq,Generic)
+
+asInteger :: Goldilocks -> Integer
+asInteger (Goldilocks x) = x
 
 instance Show Goldilocks where
-  show (Goldilocks k) = printf "0x%016x" k
+  -- show (Goldilocks x) = printf "0x%016x" x
+  show (Goldilocks x) = show x
+
+--------------------------------------------------------------------------------
+
+instance ToJSON Goldilocks where
+  toJSON x = toJSON (asInteger x)
+
+instance FromJSON Goldilocks where
+  parseJSON o = mkGoldilocks <$> parseJSON o
 
 --------------------------------------------------------------------------------
 

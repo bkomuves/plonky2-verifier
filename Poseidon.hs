@@ -16,7 +16,7 @@ import Data.Array.IArray
 
 import Goldilocks
 import Constants
-import Hash
+import Digest
 
 --------------------------------------------------------------------------------
 

@@ -8,63 +8,41 @@ import Data.Word
 import Data.Bits
 
 import Goldilocks
+import Poseidon
+import Digest
 
 --------------------------------------------------------------------------------
 
-type State = Array Int F
+-- | Poseidon sponge construction (rate=8, capacity=4) without padding.
+--
+-- Notes:
+-- 
+-- * Plonky2 to use the sponge in \"overwrite mode\"
+--
+-- * No padding is applied (inputs are expected to be fixed length)
+--
+sponge :: [F] -> Digest
+sponge = go zeroState where
+  go !state [] = extractDigest state
+  go !state xs = case splitAt 8 xs of
+    (this,rest) -> go (permutation $ combine this state) rest
+  combine xs arr = listToState $ xs ++ drop (length xs) (elems arr)
 
-listToState' :: Int -> [F] -> State
-listToState' n = listArray (0,n-1)
+-- | Sponge with @10*1@ padding. The only place this is used is hashing
+-- the domain separator (which is empty by default)
+spongeWithPad :: [F] -> Digest
+spongeWithPad what = go zeroState (what ++ [1]) where
+  go !state [] = extractDigest state
+  go !state xs = case splitAt 8 xs of
+    (this,rest) -> go (permutation $ combine this state) rest
+  combine xs arr = let k = length xs in if k < 8 
+    then listToState $ xs ++ replicate (8-k-1) 0 ++ [1] ++ drop 8 (elems arr)
+    else listToState $ xs ++ drop k (elems arr)
 
-listToState :: [F] -> State
-listToState = listToState' 12
-
-zeroState' :: Int -> State
-zeroState' n = listToState' n (replicate n 0)
-
-zeroState :: State
-zeroState = zeroState' 12
-
---------------------------------------------------------------------------------
-
-data Digest 
-  = MkDigest !F !F !F !F
-  deriving (Eq,Show)
-
-zeroDigest :: Digest
-zeroDigest = MkDigest 0 0 0 0
-
-extractDigest :: State -> Digest
-extractDigest state = case elems state of 
-  (a:b:c:d:_) -> MkDigest a b c d
-
-listToDigest :: [F] -> Digest
-listToDigest [a,b,c,d] = MkDigest a b c d
-
-digestToList :: Digest -> [F]
-digestToList (MkDigest a b c d) = [a,b,c,d]
+-- | Compression function for Merkle trees
+compress :: Digest -> Digest -> Digest
+compress x y = extractDigest $ permutation $ listToState s0 where
+  s0 = digestToList x ++ digestToList y ++ [0,0,0,0]
 
 --------------------------------------------------------------------------------
 
-digestToWord64s :: Digest -> [Word64]
-digestToWord64s (MkDigest a b c d) = [ fromF a, fromF b, fromF c, fromF d]
-
-digestToBytes :: Digest -> [Word8]
-digestToBytes = concatMap bytesFromWord64LE . digestToWord64s
-
---------------------------------------------------------------------------------
-
-bytesFromWord64LE :: Word64 -> [Word8]
-bytesFromWord64LE = go 0 where
-  go 8  _  = []
-  go !k !w = fromIntegral (w .&. 0xff) : go (k+1) (shiftR w 8)
-
-bytesToWord64LE :: [Word8] -> Word64
-bytesToWord64LE = fromInteger . bytesToIntegerLE
-
-bytesToIntegerLE :: [Word8] -> Integer
-bytesToIntegerLE = go where
-  go []          = 0 
-  go (this:rest) = fromIntegral this + 256 * go rest
-
---------------------------------------------------------------------------------
