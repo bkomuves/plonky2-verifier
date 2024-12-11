@@ -1,5 +1,5 @@
 
-{-# LANGUAGE StrictData, DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE StrictData, OverloadedStrings, DeriveGeneric, DeriveAnyClass #-}
 module Types where
 
 --------------------------------------------------------------------------------
@@ -7,6 +7,8 @@ module Types where
 import Data.Word
 
 import Data.Aeson
+import qualified Data.Aeson.KeyMap as KeyMap
+
 import GHC.Generics
 
 import Goldilocks
@@ -18,9 +20,15 @@ newtype KeccakHash
   = MkKeccakHash [Word8]
   deriving (Eq,Show,Generic)
 
+instance ToJSON   KeccakHash where toJSON (MkKeccakHash hash) = toJSON hash
+instance FromJSON KeccakHash where parseJSON o = MkKeccakHash <$> parseJSON o
+
 newtype LookupTable 
   = MkLookupTable [(Word64,Word64)]
   deriving (Eq,Show,Generic)
+
+instance ToJSON   LookupTable where toJSON (MkLookupTable x) = toJSON x
+instance FromJSON LookupTable where parseJSON o = MkLookupTable <$> parseJSON o
 
 --------------------------------------------------------------------------------
 
@@ -41,31 +49,60 @@ data CommonCircuitData = MkCommonCircuitData
   }
   deriving (Eq,Show,Generic)
 
+instance FromJSON CommonCircuitData where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 8 }
+--instance ToJSON   CommonCircuitData where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 8 }
+
 data CircuitConfig = MkCircuitConfig
-  { cfg_num_wires                  :: Int        -- ^ Number of wires available at each row. This corresponds to the "width" of the circuit, and consists in the sum of routed wires and advice wires.
-  , cfg_num_routed_wires           :: Int        -- ^ The number of routed wires, i.e. wires that will be involved in Plonk's permutation argument.
-  , cfg_num_constants              :: Int        -- ^ The number of constants that can be used per gate.
-  , cfg_use_base_arithmetic_gate   :: Bool       -- ^ Whether to use a dedicated gate for base field arithmetic, rather than using a single gate for both base field and extension field arithmetic.
-  , cfg_security_bits              :: Int        -- ^ Security level target
-  , cfg_num_challenges             :: Int        -- ^ The number of challenge points to generate, for IOPs that have soundness errors of (roughly) `degree / |F|`.
-  , cfg_zero_knowledge             :: Bool       -- ^ Option to activate the zero-knowledge property.
-  , cfg_randomize_unused_wires     :: Bool       -- ^ Option to disable randomization (useful for debugging).
-  , cfg_max_quotient_degree_factor :: Int        -- ^ A cap on the quotient polynomial's degree factor.
-  , cfg_fri_config                 :: FriConfig
+  { config_num_wires                  :: Int        -- ^ Number of wires available at each row. This corresponds to the "width" of the circuit, and consists in the sum of routed wires and advice wires.
+  , config_num_routed_wires           :: Int        -- ^ The number of routed wires, i.e. wires that will be involved in Plonk's permutation argument.
+  , config_num_constants              :: Int        -- ^ The number of constants that can be used per gate.
+  , config_use_base_arithmetic_gate   :: Bool       -- ^ Whether to use a dedicated gate for base field arithmetic, rather than using a single gate for both base field and extension field arithmetic.
+  , config_security_bits              :: Int        -- ^ Security level target
+  , config_num_challenges             :: Int        -- ^ The number of challenge points to generate, for IOPs that have soundness errors of (roughly) `degree / |F|`.
+  , config_zero_knowledge             :: Bool       -- ^ Option to activate the zero-knowledge property.
+  , config_randomize_unused_wires     :: Bool       -- ^ Option to disable randomization (useful for debugging).
+  , config_max_quotient_degree_factor :: Int        -- ^ A cap on the quotient polynomial's degree factor.
+  , config_fri_config                 :: FriConfig
   }
   deriving (Eq,Show,Generic)
+
+instance FromJSON CircuitConfig where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 7 }
+instance ToJSON   CircuitConfig where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 7 }
 
 -- | The interval @[a,b)@ (inclusive on the left, exclusive on the right)
-data Range 
-  = MkRange Int Int
-  deriving (Eq,Show,Generic)
-
-data SelectorsInfo = MkSelectorsInfo
-  { selector_indices :: [Int]
-  , groups           :: [Range]
-  , selector_vector  :: Maybe [Int]
+data Range = MkRange 
+  { range_start :: Int
+  , range_end   :: Int
   }
   deriving (Eq,Show,Generic)
+
+instance FromJSON Range where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 6 }
+instance ToJSON   Range where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 6 }
+
+data SelectorsInfo = MkSelectorsInfo
+  { selector_indices :: [Int]             -- ^ which gate is in which selector groups (length = number of gates)
+  , selector_groups  :: [Range]           -- ^ the selector groups are continuous intervals
+  , selector_vector  :: Maybe [Int]       -- ^ this is an unofficial addition, so it's optional
+  }
+  deriving (Eq,Show,Generic)
+
+instance FromJSON SelectorsInfo where
+   parseJSON = withObject "SelectorsInfo" $ \v -> MkSelectorsInfo
+       <$> v .:  "selector_indices"
+       <*> v .:  "groups"
+       <*> v .:? "selector_vector"
+
+instance ToJSON SelectorsInfo where
+  toJSON selInfo = object (mandatory ++ optional) where
+    mandatory = 
+      [ "selector_indices" .= toJSON (selector_indices selInfo)
+      , "groups"           .= toJSON (selector_groups  selInfo)
+      ]
+    optional = case selector_vector selInfo of 
+      Nothing     -> [] 
+      Just selvec -> [ "selector_vector" .= toJSON selvec ]
+
+--------------------------------------------------------------------------------
 
 data Gate
   = ArithmeticGate          { num_ops    :: Int }
@@ -84,7 +121,15 @@ data Gate
   | RandomAccessGate        { bits :: Int, num_copies :: Int, num_extra_constants :: Int }
   | ReducingGate            { num_coeffs :: Int }
   | ReducingExtensionGate   { num_coeffs :: Int }
+  | UnknownGate  String
   deriving (Eq,Show,Generic)
+
+-- TODO
+recognizeGate :: String -> Gate
+recognizeGate str = case str of
+  _ -> UnknownGate str
+
+instance FromJSON Gate where parseJSON o = recognizeGate <$> parseJSON o
 
 --------------------------------------------------------------------------------
 
@@ -97,11 +142,31 @@ data FriConfig = MkFrConfig
   }
   deriving (Eq,Show,Generic)
 
+instance FromJSON FriConfig where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
+instance ToJSON   FriConfig where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
+
 data FriReductionStrategy 
   = Fixed             { arity_bits_seq :: [Int] }
   | ConstantArityBits { arity_bits :: Int , final_poly_bits :: Int }
   | MinSize           { opt_max_arity_bits :: Maybe Int }
   deriving (Eq,Show,Generic)
+
+instance FromJSON FriReductionStrategy where
+  parseJSON val = case val of
+    Object obj -> case KeyMap.toList obj of
+      [(key,val)] -> case key of
+        "Fixed"             -> Fixed <$> parseJSON val
+        "ConstantArityBits" -> (\[a,b] -> ConstantArityBits a b) <$> parseJSON val
+        "MinSize"           -> MinSize <$> parseJSON val      -- TODO: this probably won't work because Maybe vs Option
+        _ -> fail $ "FromJSON/FriReductionStrategy: unrecognized FRI reduction strategy: `" ++ show key ++ "`"
+      _ -> fail "FromJSON/FriReductionStrategy: expecting a singleton object"
+    _ -> fail "FromJSON/FriReductionStrategy: expecting an object"
+
+instance ToJSON FriReductionStrategy where
+  toJSON strat = case strat of
+    Fixed             xs  -> object [ "Fixed"             .= toJSON xs    ]
+    ConstantArityBits x y -> object [ "ConstantArityBits" .= toJSON [x,y] ]
+    MinSize           mb  -> error "ToJSON/FriReductionStrategy/MinSize: this is not handled yet"
 
 data FriParams = MkFriParams
   { fri_config               :: FriConfig   -- ^ User-specified FRI configuration.
@@ -110,6 +175,9 @@ data FriParams = MkFriParams
   , fri_reduction_arity_bits :: [Int]       -- ^ The arity of each FRI reduction step, expressed as the log2 of the actual arity.
   }
   deriving (Eq,Show,Generic)
+
+instance FromJSON FriParams where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
+instance ToJSON   FriParams where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
 
 --------------------------------------------------------------------------------
 
@@ -127,6 +195,9 @@ newtype MerkleCap
   = MkMerkleCap [Digest]
   deriving (Eq,Show,Generic)
 
+instance ToJSON   MerkleCap where toJSON (MkMerkleCap caps) = toJSON caps
+instance FromJSON MerkleCap where parseJSON o = MkMerkleCap <$> parseJSON o
+
 data VerifierOnlyCircuitData = MkVerifierOnlyCircuitData
   { constants_sigmas_cap :: MerkleCap     -- ^ commitment to list of constant polynomial and sigma polynomials
   , circuit_digest       :: Digest        -- ^ a digest of the "circuit" (i.e. the instance, minus public inputs), which can be used to seed Fiat-Shamir
@@ -135,5 +206,3 @@ data VerifierOnlyCircuitData = MkVerifierOnlyCircuitData
 
 --------------------------------------------------------------------------------
 
-instance ToJSON   MerkleCap where toJSON (MkMerkleCap caps) = toJSON caps
-instance FromJSON MerkleCap where parseJSON o = MkMerkleCap <$> parseJSON o

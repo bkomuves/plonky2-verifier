@@ -21,7 +21,11 @@ main = do
   text_proof  <- L.readFile "json/fibonacci_proof.json"
   text_vkey   <- L.readFile "json/fibonacci_vkey.json"
 
-  let Just vkey = decode text_vkey :: Maybe VerifierOnlyCircuitData
-  print vkey
+  -- let Just vkey = decode text_vkey :: Maybe VerifierOnlyCircuitData
+  -- print vkey
+  -- putStrLn ""
+  -- L.putStr (encode vkey)
+
+  let ei = eitherDecode text_common :: Either String CommonCircuitData
+  print ei
   putStrLn ""
-  L.putStr (encode vkey)
