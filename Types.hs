@@ -4,24 +4,22 @@ module Types where
 
 --------------------------------------------------------------------------------
 
+import Data.Char
 import Data.Word
 
 import Data.Aeson
 import qualified Data.Aeson.KeyMap as KeyMap
+import Data.Aeson.Types ( Result(..) )
+
+import qualified Data.ByteString.Lazy.Char8 as L
 
 import GHC.Generics
 
 import Goldilocks
 import Digest
+import Gates
 
 --------------------------------------------------------------------------------
-
-newtype KeccakHash  
-  = MkKeccakHash [Word8]
-  deriving (Eq,Show,Generic)
-
-instance ToJSON   KeccakHash where toJSON (MkKeccakHash hash) = toJSON hash
-instance FromJSON KeccakHash where parseJSON o = MkKeccakHash <$> parseJSON o
 
 newtype LookupTable 
   = MkLookupTable [(Word64,Word64)]
@@ -104,35 +102,6 @@ instance ToJSON SelectorsInfo where
 
 --------------------------------------------------------------------------------
 
-data Gate
-  = ArithmeticGate          { num_ops    :: Int }
-  | ArithmeticExtensionGate { num_ops    :: Int }
-  | BasSumGate              { num_limbs  :: Int }
-  | CosetInterpolationGate  { subgroup_bits :: Int, degree :: Int , barycentric_weights :: [F] }
-  | ConstantGate            { num_consts :: Int }
-  | ExponentiationGate      { num_power_bits :: Int }
-  | LookupGate              { num_slots  :: Int, lut_hash :: KeccakHash }
-  | LookupTableGate         { num_slots  :: Int, lut_hash :: KeccakHash, last_lut_row :: Int }
-  | MulExtensionGate        { num_ops    :: Int }
-  | NoopGate
-  | PublicInputGate
-  | PoseidonGate            { hash_width :: Int}
-  | PoseidonMdsGate         { hash_width :: Int}
-  | RandomAccessGate        { bits :: Int, num_copies :: Int, num_extra_constants :: Int }
-  | ReducingGate            { num_coeffs :: Int }
-  | ReducingExtensionGate   { num_coeffs :: Int }
-  | UnknownGate  String
-  deriving (Eq,Show,Generic)
-
--- TODO
-recognizeGate :: String -> Gate
-recognizeGate str = case str of
-  _ -> UnknownGate str
-
-instance FromJSON Gate where parseJSON o = recognizeGate <$> parseJSON o
-
---------------------------------------------------------------------------------
-
 data FriConfig = MkFrConfig 
   { fri_rate_bits          :: Int                      -- ^ @rate = 2^{-rate_bits}@
   , fri_cap_height         :: Int                      -- ^ Height of Merkle tree caps.
@@ -206,3 +175,11 @@ data VerifierOnlyCircuitData = MkVerifierOnlyCircuitData
 
 --------------------------------------------------------------------------------
 
+-- seriously...
+decodeString :: FromJSON a => String -> Maybe a
+decodeString = decode . L.pack
+
+encodeString :: ToJSON a => a -> String
+encodeString = L.unpack . encode
+
+--------------------------------------------------------------------------------
