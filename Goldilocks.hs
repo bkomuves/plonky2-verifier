@@ -34,51 +34,28 @@ toF = mkGoldilocks . fromIntegral
 rndF :: IO F
 rndF = Goldilocks <$> randomRIO ( 0 , 0xffff_ffff_0000_0000 )
 
+-- | The generator of the multiplicative subgroup of F used by Plonky2
+multGen :: F
+multGen = 0xc65c18b67785d900
+
+-- | The generator of the largest 2-adic subgroup of F used by Plonky2
+twoAdicGen :: F
+twoAdicGen = 0x64fdd1a46201e246 
+
 -- | Sage code:
 --
 -- > p = 2^64-2^32+1
 -- > F = GF(p)
--- > g = F(7)
+-- > g = F(0xc65c18b67785d900)
 -- > print( g.multiplicative_order() == p-1 )
--- > a = g ^ ( (p-1) / 2^32 )
--- > [ a^(2^(32-k)) for k in range(33) ]
+-- > h = g ^ ( (p-1) / 2^32 )
+-- > print( h == F(0x64fdd1a46201e246) )
+-- > [ h^(2^(32-k)) for k in range(33) ]
 --
 rootsOfUnity :: Array Int Goldilocks
-rootsOfUnity = listArray (0,32) $ map toF
-  [ 1
-  , 18446744069414584320
-  , 281474976710656
-  , 18446744069397807105
-  , 17293822564807737345
-  , 70368744161280
-  , 549755813888
-  , 17870292113338400769
-  , 13797081185216407910
-  , 1803076106186727246
-  , 11353340290879379826
-  , 455906449640507599
-  , 17492915097719143606
-  , 1532612707718625687
-  , 16207902636198568418
-  , 17776499369601055404
-  , 6115771955107415310
-  , 12380578893860276750
-  , 9306717745644682924
-  , 18146160046829613826
-  , 3511170319078647661
-  , 17654865857378133588
-  , 5416168637041100469
-  , 16905767614792059275
-  , 9713644485405565297
-  , 5456943929260765144
-  , 17096174751763063430
-  , 1213594585890690845
-  , 6414415596519834757
-  , 16116352524544190054
-  , 9123114210336311365
-  , 4614640910117430873
-  , 1753635133440165772
-  ]
+rootsOfUnity = listArray (0,32) $ reverse $ go twoAdicGen where
+  go 1 = [1]
+  go x = x : go (x*x)
 
 --------------------------------------------------------------------------------
 
@@ -90,8 +67,8 @@ asInteger :: Goldilocks -> Integer
 asInteger (Goldilocks x) = x
 
 instance Show Goldilocks where
-  -- show (Goldilocks x) = printf "0x%016x" x
-  show (Goldilocks x) = show x
+  show (Goldilocks x) = printf "0x%016x" x
+  -- show (Goldilocks x) = show x
 
 --------------------------------------------------------------------------------
 
