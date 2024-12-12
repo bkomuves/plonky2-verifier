@@ -31,8 +31,16 @@ fromF (Goldilocks x) = fromInteger x
 toF :: Word64 -> F
 toF = mkGoldilocks . fromIntegral
 
+intToF :: Int -> F
+intToF = mkGoldilocks . fromIntegral
+
+integerToF :: Integer -> F
+integerToF = mkGoldilocks 
+
 rndF :: IO F
 rndF = Goldilocks <$> randomRIO ( 0 , 0xffff_ffff_0000_0000 )
+
+--------------------------------------------------------------------------------
 
 -- | The generator of the multiplicative subgroup of F used by Plonky2
 multGen :: F
