@@ -67,8 +67,8 @@ asInteger :: Goldilocks -> Integer
 asInteger (Goldilocks x) = x
 
 instance Show Goldilocks where
-  show (Goldilocks x) = printf "0x%016x" x
-  -- show (Goldilocks x) = show x
+  show (Goldilocks x) = show x                    -- decimal
+  -- show (Goldilocks x) = printf "0x%016x" x        -- hex
 
 --------------------------------------------------------------------------------
 

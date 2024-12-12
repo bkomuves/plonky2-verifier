@@ -31,7 +31,10 @@ main = do
   -- putStrLn ""
   -- L.putStr (encode vkey)
 
-  let ei = eitherDecode text_common :: Either String CommonCircuitData
+--  let ei = eitherDecode text_common :: Either String CommonCircuitData
+--  print ei
+--  putStrLn ""
+
+  let ei = eitherDecode text_proof :: Either String ProofWithPublicInputs
   print ei
   putStrLn ""
-

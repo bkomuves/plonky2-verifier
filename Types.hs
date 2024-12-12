@@ -1,5 +1,5 @@
 
-{-# LANGUAGE StrictData, OverloadedStrings, DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE StrictData, OverloadedStrings, DeriveGeneric, DeriveAnyClass, NoGeneralizedNewtypeDeriving #-}
 module Types where
 
 --------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ import qualified Data.ByteString.Lazy.Char8 as L
 import GHC.Generics
 
 import Goldilocks
+import GoldilocksExt
 import Digest
 import Gates
 
@@ -28,7 +29,12 @@ newtype LookupTable
 instance ToJSON   LookupTable where toJSON (MkLookupTable x) = toJSON x
 instance FromJSON LookupTable where parseJSON o = MkLookupTable <$> parseJSON o
 
+newtype PolynomialCoeffs coeff
+  = MkPolynomialCoeffs { coeffs :: [coeff] }
+  deriving (Eq,Show,Generic,ToJSON,FromJSON)
+
 --------------------------------------------------------------------------------
+-- * Common circuit data
 
 data CommonCircuitData = MkCommonCircuitData
   { circuit_config                 :: CircuitConfig    -- ^ Global circuit configuration
@@ -85,10 +91,10 @@ data SelectorsInfo = MkSelectorsInfo
   deriving (Eq,Show,Generic)
 
 instance FromJSON SelectorsInfo where
-   parseJSON = withObject "SelectorsInfo" $ \v -> MkSelectorsInfo
-       <$> v .:  "selector_indices"
-       <*> v .:  "groups"
-       <*> v .:? "selector_vector"
+  parseJSON = withObject "SelectorsInfo" $ \v -> MkSelectorsInfo
+    <$> v .:  "selector_indices"
+    <*> v .:  "groups"
+    <*> v .:? "selector_vector"
 
 instance ToJSON SelectorsInfo where
   toJSON selInfo = object (mandatory ++ optional) where
@@ -101,6 +107,7 @@ instance ToJSON SelectorsInfo where
       Just selvec -> [ "selector_vector" .= toJSON selvec ]
 
 --------------------------------------------------------------------------------
+-- * FRI types
 
 data FriConfig = MkFrConfig 
   { fri_rate_bits          :: Int                      -- ^ @rate = 2^{-rate_bits}@
@@ -148,7 +155,45 @@ data FriParams = MkFriParams
 instance FromJSON FriParams where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
 instance ToJSON   FriParams where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
 
+data FriProof = MkFriProof
+  { fri_commit_phase_merkle_caps :: [MerkleCap]               -- ^ A Merkle cap for each reduced polynomial in the commit phase.
+  , fri_query_round_proofs       :: [FriQueryRound]           -- ^ Query rounds proofs
+  , fri_final_poly               :: PolynomialCoeffs FExt     -- ^ The final polynomial in coefficient form.
+  , fri_pow_witness              :: F                         -- ^ Witness showing that the prover did PoW.
+  }
+  deriving (Eq,Show,Generic)
+
+instance FromJSON FriProof where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
+instance ToJSON   FriProof where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
+
+data FriQueryRound = MkFriQueryRound 
+  { fri_initial_trees_proof :: FriInitialTreeProof
+  , fri_steps               :: [FriQueryStep]
+  }
+  deriving (Eq,Show,Generic)
+
+instance FromJSON FriQueryRound where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
+instance ToJSON   FriQueryRound where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
+
+newtype FriInitialTreeProof
+  = MkFriInitialTreeProof { evals_proofs :: [ ( [F] , MerkleProof ) ] }
+  deriving (Eq,Show,Generic,FromJSON,ToJSON)
+
+data FriQueryStep = MkFriQueryStep
+  { fri_evals        :: [FExt] 
+  , fri_merkle_proof :: MerkleProof
+  }
+  deriving (Eq,Show,Generic)
+
+instance FromJSON FriQueryStep where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
+instance ToJSON   FriQueryStep where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
+
+newtype MerkleProof
+  = MkMerkleProof { siblings :: [Digest] }
+  deriving (Eq,Show,Generic,FromJSON,ToJSON)
+
 --------------------------------------------------------------------------------
+-- * Verifier
 
 newtype PublicInputs 
   = MkPublicInputs [F]
@@ -172,6 +217,45 @@ data VerifierOnlyCircuitData = MkVerifierOnlyCircuitData
   , circuit_digest       :: Digest        -- ^ a digest of the "circuit" (i.e. the instance, minus public inputs), which can be used to seed Fiat-Shamir
   }
   deriving (Eq,Show,Generic,ToJSON,FromJSON)
+
+--------------------------------------------------------------------------------
+-- * Proof
+
+data ProofWithPublicInputs = MkProofWithPublicInputs
+  { the_proof     :: Proof
+  , public_inputs :: [F]
+  }
+  deriving (Eq,Show,Generic)
+
+instance FromJSON ProofWithPublicInputs where
+  parseJSON = withObject "ProofWithPublicInputs" $ \v -> MkProofWithPublicInputs
+    <$> v .:  "proof"
+    <*> v .:  "public_inputs"
+
+data Proof = MkProof 
+  { wires_cap          :: MerkleCap               -- ^ Merkle cap of LDEs of wire values.
+  , plonk_zs_partial_products_cap :: MerkleCap    -- ^ Merkle cap of LDEs of Z, in the context of Plonk's permutation argument.
+  , quotient_polys_cap :: MerkleCap               -- ^ Merkle cap of LDEs of the quotient polynomial components.
+  , openings           :: OpeningSet              -- ^ Purported values of each polynomial at the challenge point.
+  , opening_proof      :: FriProof                -- ^ A batch FRI argument for all openings.
+  }
+  deriving (Eq,Show,Generic,ToJSON,FromJSON)
+
+data OpeningSet = MkOpeningSet
+  { opening_constants        :: [FExt]
+  , opening_plonk_sigmas     :: [FExt]
+  , opening_wires            :: [FExt]
+  , opening_plonk_zs         :: [FExt]
+  , opening_plonk_zs_next    :: [FExt]
+  , opening_partial_products :: [FExt]
+  , opening_quotient_polys   :: [FExt]
+  , opening_lookup_zs        :: [FExt]
+  , opening_lookup_zs_next   :: [FExt]
+  }
+  deriving (Eq,Show,Generic)
+
+instance FromJSON OpeningSet where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 8 }
+instance ToJSON   OpeningSet where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 8 }
 
 --------------------------------------------------------------------------------
 

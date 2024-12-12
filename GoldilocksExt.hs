@@ -13,6 +13,8 @@ module GoldilocksExt where
 import Data.Bits
 import Data.Ratio
 
+import Data.Aeson ( ToJSON(..), FromJSON(..) )
+
 import Goldilocks
 
 --------------------------------------------------------------------------------
@@ -25,6 +27,12 @@ data GoldilocksExt
 
 instance Show GoldilocksExt where
   show (MkExt real imag) = "(" ++ show real ++ " + X*" ++ show imag ++ ")"
+
+instance ToJSON GoldilocksExt where
+  toJSON (MkExt a b) = toJSON (a,b)
+
+instance FromJSON GoldilocksExt where
+  parseJSON o = (\(a,b) -> MkExt a b) <$> parseJSON o
 
 --------------------------------------------------------------------------------
 
