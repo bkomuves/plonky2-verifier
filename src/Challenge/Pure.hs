@@ -1,5 +1,5 @@
 
--- | Fiat-Shamir challenges
+-- | Duplex sponge used for Fiat-Shamir challenges
 
 {-# LANGUAGE StrictData, GeneralizedNewtypeDeriving #-}
 module Challenge.Pure 

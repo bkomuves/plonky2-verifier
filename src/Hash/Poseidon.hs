@@ -20,7 +20,10 @@ import Hash.Digest
 
 --------------------------------------------------------------------------------
 
--- | permutation of @[0..11]@
+-- | KAT = Known Answer Test 
+--
+-- This is the permutation of @[0..11]@
+--
 kats :: [Word64]
 kats = 
   [ 0xd64e1e3efc5b8e9e , 0x53666633020aaa47 , 0xd40285597c6a8825 , 0x613a4f81e81231d2

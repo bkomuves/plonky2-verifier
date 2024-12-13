@@ -1,4 +1,6 @@
 
+-- | Hash digests consist of 4 goldilocks field elements
+
 {-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 module Hash.Digest where
 

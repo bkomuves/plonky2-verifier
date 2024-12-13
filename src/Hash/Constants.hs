@@ -1,5 +1,5 @@
 
--- | Constant's for Plonky2's version of Poseidon hash 
+-- | Constants for Plonky2's version of Poseidon hash 
 --
 -- See <https://github.com/0xPolygonZero/plonky2/blob/main/plonky2/src/hash/poseidon_goldilocks.rs>
 
@@ -39,6 +39,8 @@ fast_PARTIAL_ROUND_CONSTANTS = listArray (0,21)
   , 0xf01bb0b00f77011e , 0xa1ebb404b676afd9 , 0x860b6e1597a0173e , 0x308bb65a036acbce
   , 0x1aca78f31c97c876 , 0x0
   ]
+
+{-
 
 fast_PARTIAL_ROUND_VS :: [Array Int F] 
 fast_PARTIAL_ROUND_VS = map (listArray (0,10))
@@ -92,6 +94,7 @@ fast_PARTIAL_ROUND_W_HATS = map (listArray (0,10))
   , [0x3abeb80def61cc85, 0x9d19c9dd4eac4133, 0x075a652d9641a985, 0x9daf69ae1b67e667, 0x364f71da77920a18, 0x50bd769f745c95b1, 0xf223d1180dbbf3fc, 0x2f885e584e04aa99, 0xb69a0fa70aea684a, 0x09584acaa6e062a0, 0x0bc051640145b19b ]
   ]
 
+-}
 
 -- ^ NB: This is in ROW-major order to support cache-friendly pre-multiplication.
 fast_PARTIAL_ROUND_INITIAL_MATRIX :: Array (Int,Int) F
