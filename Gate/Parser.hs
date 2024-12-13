@@ -1,13 +1,13 @@
 
--- | Gates are encoded as strings produced by default Rust serialization...
+-- | Gates are encoded as strings produced by ad-hoc of modification of Rust textual serialization...
 --
 -- ... so we have to parse /that/
 --
--- (also figure out what equations do they imply)
+-- (and then figure out what equations do they imply)
 --
 
 {-# LANGUAGE StrictData, PackageImports, DeriveGeneric, DeriveAnyClass #-}
-module Gates where
+module Gate.Parser where
 
 --------------------------------------------------------------------------------
 
@@ -19,39 +19,12 @@ import GHC.Generics
 import "parsec1" Text.ParserCombinators.Parsec
 
 import Goldilocks
+import Gate.Base
 
 --------------------------------------------------------------------------------
 
-newtype KeccakHash
-  = MkKeccakHash [Word8]
-  deriving (Eq,Show,Generic)
-
-instance ToJSON   KeccakHash where toJSON (MkKeccakHash hash) = toJSON hash
-instance FromJSON KeccakHash where parseJSON o = MkKeccakHash <$> parseJSON o
-
---------------------------------------------------------------------------------
-
-data Gate
-  = ArithmeticGate          { num_ops    :: Int }
-  | ArithmeticExtensionGate { num_ops    :: Int }
-  | BaseSumGate             { num_limbs  :: Int , base :: Int }
-  | CosetInterpolationGate  { subgroup_bits :: Int, coset_degree :: Int , barycentric_weights :: [F] }
-  | ConstantGate            { num_consts :: Int }
-  | ExponentiationGate      { num_power_bits :: Int }
-  | LookupGate              { num_slots  :: Int, lut_hash :: KeccakHash }
-  | LookupTableGate         { num_slots  :: Int, lut_hash :: KeccakHash, last_lut_row :: Int }
-  | MulExtensionGate        { num_ops    :: Int }
-  | NoopGate
-  | PublicInputGate
-  | PoseidonGate            { hash_width :: Int}
-  | PoseidonMdsGate         { hash_width :: Int}
-  | RandomAccessGate        { num_bits :: Int, num_copies :: Int, num_extra_constants :: Int }
-  | ReducingGate            { num_coeffs :: Int }
-  | ReducingExtensionGate   { num_coeffs :: Int }
-  | UnknownGate  String
-  deriving (Eq,Show,Generic)
-
-instance FromJSON Gate where parseJSON o = recognizeGate <$> parseJSON o
+instance FromJSON Gate where 
+  parseJSON o = recognizeGate <$> parseJSON o
 
 --------------------------------------------------------------------------------
 -- * Parsing Rust gate strings
@@ -165,7 +138,7 @@ arithmeticExtensionGateP :: Parser Gate
 arithmeticExtensionGateP = withEOF $ rustStructP "ArithmeticExtensionGate" $ do
   ArithmeticExtensionGate <$> oneP ("num_ops", intP)
 
--- BaseSumGate { num_limbs: 63 } + Base: 2"
+-- "BaseSumGate { num_limbs: 63 } + Base: 2"
 baseSumGateP :: Parser Gate
 baseSumGateP = withEOF $ do
   limbs <- rustStructP "BaseSumGate" $ oneP ("num_limbs", intP)
@@ -173,7 +146,7 @@ baseSumGateP = withEOF $ do
   base <- oneP ("Base", intP)
   return $ BaseSumGate limbs base
 
--- ""osetInterpolationGate { subgroup_bits: 4, degree: 6, barycentric_weights: [17293822565076172801, ... ]], _phantom: PhantomData<plonky2_field::goldilocks_field::GoldilocksField> }<D=2>"
+-- "CosetInterpolationGate { subgroup_bits: 4, degree: 6, barycentric_weights: [17293822565076172801, ... ]], _phantom: PhantomData<plonky2_field::goldilocks_field::GoldilocksField> }<D=2>"
 cosetInterpolationGateP :: Parser Gate
 cosetInterpolationGateP = withEOF $ do
   gate <- rustStructP "CosetInterpolationGate" $ do
@@ -255,10 +228,14 @@ poseidonMdsGateP = do
 
 reducingGateP :: Parser Gate
 reducingGateP = rustStructP "ReducingGate" $ do
-  ReducingGate <$> oneP ("num_coeffs" , intP)
+  arg <- oneP ("num_coeffs" , intP)
+  optional $ string "<D=2>"
+  return (ReducingGate arg)
 
 reducingExtensionGateP :: Parser Gate
 reducingExtensionGateP = rustStructP "ReducingExtensionGate" $ do
-  ReducingExtensionGate <$> oneP ("num_coeffs" , intP)
+  arg <- oneP ("num_coeffs" , intP)
+  optional $ string "<D=2>"
+  return (ReducingExtensionGate arg)
 
 --------------------------------------------------------------------------------

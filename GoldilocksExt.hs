@@ -25,6 +25,9 @@ data GoldilocksExt
   = MkExt !Goldilocks !Goldilocks
   deriving Eq
 
+fromBase :: Goldilocks -> GoldilocksExt
+fromBase x = MkExt x 0
+
 instance Show GoldilocksExt where
   show (MkExt real imag) = "(" ++ show real ++ " + X*" ++ show imag ++ ")"
 

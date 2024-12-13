@@ -18,7 +18,8 @@ import GHC.Generics
 import Goldilocks
 import GoldilocksExt
 import Digest
-import Gates
+import Gate.Base
+import Gate.Parser
 
 --------------------------------------------------------------------------------
 
