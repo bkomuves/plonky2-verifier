@@ -13,7 +13,7 @@ import Control.Monad.Identity
 import qualified Control.Monad.State.Strict as S
 import Control.Monad.IO.Class
 
-import Goldilocks
+import Algebra.Goldilocks
 import Digest
 import Challenge.Pure ( DuplexState, Squeeze, Absorb )
 import qualified Challenge.Pure as Pure

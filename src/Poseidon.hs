@@ -14,7 +14,7 @@ import Data.Word
 import Data.Array (Array)
 import Data.Array.IArray
 
-import Goldilocks
+import Algebra.Goldilocks
 import Constants
 import Digest
 

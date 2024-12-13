@@ -11,7 +11,7 @@ import Data.Bits
 import GHC.Generics
 import Data.Aeson ( FromJSON(..) , ToJSON(..) , object , withObject , (.=) , (.:) )
 
-import Goldilocks
+import Algebra.Goldilocks
 
 --------------------------------------------------------------------------------
 

@@ -18,7 +18,7 @@ import GHC.Generics
 
 import "parsec1" Text.ParserCombinators.Parsec
 
-import Goldilocks
+import Algebra.Goldilocks
 import Gate.Base
 
 --------------------------------------------------------------------------------

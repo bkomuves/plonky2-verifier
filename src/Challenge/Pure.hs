@@ -15,8 +15,8 @@ module Challenge.Pure
 
 import Data.Array
 
-import Goldilocks
-import GoldilocksExt
+import Algebra.Goldilocks
+import Algebra.GoldilocksExt
 import Poseidon
 import Digest
 import Types

@@ -10,8 +10,8 @@ import Control.Monad
 
 import Data.Bits
 
-import Goldilocks
-import GoldilocksExt
+import Algebra.Goldilocks
+import Algebra.GoldilocksExt
 import Hash
 import Digest
 import Types

@@ -2,7 +2,7 @@
 -- | Reference (simple, but very slow) implementation of the Goldilocks prime field
 
 {-# LANGUAGE BangPatterns, NumericUnderscores #-}
-module Goldilocks where
+module Algebra.Goldilocks where
 
 --------------------------------------------------------------------------------
 

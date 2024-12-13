@@ -11,7 +11,7 @@ import Data.Word
 import Data.Aeson
 import GHC.Generics
 
-import Goldilocks
+import Algebra.Goldilocks
 
 --------------------------------------------------------------------------------
 

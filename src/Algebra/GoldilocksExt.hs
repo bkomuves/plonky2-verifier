@@ -6,7 +6,7 @@
 -- (@X^2 - 7@ is the smallest such irreducible polynomial over Goldilocks)
 --
 
-module GoldilocksExt where
+module Algebra.GoldilocksExt where
 
 --------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import Data.Ratio
 
 import Data.Aeson ( ToJSON(..), FromJSON(..) )
 
-import Goldilocks
+import Algebra.Goldilocks
 
 --------------------------------------------------------------------------------
 

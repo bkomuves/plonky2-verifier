@@ -7,7 +7,7 @@ import Data.Array
 import Data.Word
 import Data.Bits
 
-import Goldilocks
+import Algebra.Goldilocks
 import Poseidon
 import Digest
 

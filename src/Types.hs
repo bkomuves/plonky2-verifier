@@ -15,8 +15,8 @@ import qualified Data.ByteString.Lazy.Char8 as L
 
 import GHC.Generics
 
-import Goldilocks
-import GoldilocksExt
+import Algebra.Goldilocks
+import Algebra.GoldilocksExt
 import Digest
 import Gate.Base
 import Gate.Parser

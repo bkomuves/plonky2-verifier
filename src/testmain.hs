@@ -8,7 +8,7 @@ import Data.Aeson
 import Types
 import Hash
 import Digest
-import Goldilocks
+import Algebra.Goldilocks
 import Challenge.Verifier
 
 import qualified Data.ByteString.Char8      as B
@@ -28,7 +28,7 @@ main = do
   let Just common_data   = decode text_common :: Maybe CommonCircuitData
   let Just verifier_data = decode text_vkey   :: Maybe VerifierOnlyCircuitData
   let Just proof_data    = decode text_proof  :: Maybe ProofWithPublicInputs
-  
+
   let challenges = proofChallenges common_data verifier_data proof_data
 
   print challenges
