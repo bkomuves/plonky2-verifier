@@ -17,8 +17,8 @@ import Data.Array
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
-import Poseidon
-import Digest
+import Hash.Poseidon
+import Hash.Digest
 import Types
 
 --------------------------------------------------------------------------------

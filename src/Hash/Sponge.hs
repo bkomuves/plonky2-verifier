@@ -1,5 +1,5 @@
 
-module Hash where
+module Hash.Sponge where
 
 --------------------------------------------------------------------------------
 
@@ -8,8 +8,8 @@ import Data.Word
 import Data.Bits
 
 import Algebra.Goldilocks
-import Poseidon
-import Digest
+import Hash.Poseidon
+import Hash.Digest
 
 --------------------------------------------------------------------------------
 

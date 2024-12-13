@@ -12,13 +12,13 @@ import Data.Bits
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
-import Hash
-import Digest
+import Hash.Sponge
+import Hash.Digest
 import Types
 import Challenge.Monad
 
-import Debug.Trace
-debug x y z = trace ("\n - " ++ x ++ " -> " ++ show y) z
+-- import Debug.Trace
+-- debug x y z = trace ("\n - " ++ x ++ " -> " ++ show y) z
 
 --------------------------------------------------------------------------------
 

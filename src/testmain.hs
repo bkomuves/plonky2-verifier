@@ -6,8 +6,8 @@ module Main where
 import Data.Aeson
 
 import Types
-import Hash
-import Digest
+import Hash.Sponge
+import Hash.Digest
 import Algebra.Goldilocks
 import Challenge.Verifier
 

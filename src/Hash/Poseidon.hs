@@ -5,7 +5,7 @@
 --
 
 {-# LANGUAGE Strict #-}
-module Poseidon where
+module Hash.Poseidon where
 
 --------------------------------------------------------------------------------
 
@@ -15,8 +15,8 @@ import Data.Array (Array)
 import Data.Array.IArray
 
 import Algebra.Goldilocks
-import Constants
-import Digest
+import Hash.Constants
+import Hash.Digest
 
 --------------------------------------------------------------------------------
 

@@ -14,7 +14,7 @@ import qualified Control.Monad.State.Strict as S
 import Control.Monad.IO.Class
 
 import Algebra.Goldilocks
-import Digest
+import Hash.Digest
 import Challenge.Pure ( DuplexState, Squeeze, Absorb )
 import qualified Challenge.Pure as Pure
 

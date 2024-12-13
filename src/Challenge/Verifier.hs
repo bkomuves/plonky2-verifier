@@ -8,8 +8,8 @@ module Challenge.Verifier where
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
-import Hash
-import Digest
+import Hash.Sponge
+import Hash.Digest
 import Types
 
 import Challenge.Monad

@@ -3,7 +3,7 @@
 --
 -- See <https://github.com/0xPolygonZero/plonky2/blob/main/plonky2/src/hash/poseidon_goldilocks.rs>
 
-module Constants where
+module Hash.Constants where
 
 --------------------------------------------------------------------------------
 

@@ -17,7 +17,7 @@ import GHC.Generics
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
-import Digest
+import Hash.Digest
 import Gate.Base
 import Gate.Parser
 

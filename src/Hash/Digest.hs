@@ -1,6 +1,6 @@
 
 {-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
-module Digest where
+module Hash.Digest where
 
 --------------------------------------------------------------------------------
 
