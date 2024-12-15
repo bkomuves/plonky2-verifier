@@ -2,7 +2,7 @@
 A standalone Plonky2 verifier
 -----------------------------
 
-This is a (WIP) implementation of a Plonky2 verifier in Haskell.
+This is a (WIP) implementation of a Plonky2 verifier written in Haskell.
 
 [Plonky2](https://github.com/0xPolygonZero/plonky2/) is a zero-knowledge proof
 system developed by Polygon Zero, optimized for recursive proofs.
@@ -15,7 +15,7 @@ Another goal is to be a basis for further tooling (for example:
 estimating verifier costs, helping the design of recursive circuits, generating 
 Plonky2 verifier circuits for other proof systems, etc)
 
-Note: It's deliberately no a goal for this verifier to be efficient; instead we 
+Note: It's deliberately not a goal for this verifier to be efficient; instead we 
 try to focus on simplicity.
 
 
@@ -42,7 +42,7 @@ Supported gates:
 - [x] MulExtensionGate
 - [x] NoopGate
 - [x] PublicInputGate
-- [ ] PoseidonGate
+- [x] PoseidonGate
 - [ ] PoseidonMdsGate
 - [ ] RandomAccessGate
 - [ ] ReducingGate
@@ -52,6 +52,6 @@ Optional features:
 
 - [ ] Field extensions with degree higher than 2
 - [ ] Being parametric over the field choice
-- [ ] Supporting different hash function choices
+- [ ] Supporting different hash functions
 
 

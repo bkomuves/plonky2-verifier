@@ -1,5 +1,6 @@
 
--- | Gates are encoded as strings produced by ad-hoc of modification of Rust textual serialization...
+-- | Gates are encoded as strings produced by some ad-hoc modifications 
+-- of the default Rust textual serialization...
 --
 -- ... so we have to parse /that/
 --

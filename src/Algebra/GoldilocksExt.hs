@@ -12,10 +12,12 @@ module Algebra.GoldilocksExt where
 
 import Data.Bits
 import Data.Ratio
+import Text.Show
 
 import Data.Aeson ( ToJSON(..), FromJSON(..) )
 
 import Algebra.Goldilocks
+import Misc.Pretty
 
 --------------------------------------------------------------------------------
 
@@ -30,6 +32,12 @@ fromBase x = MkExt x 0
 
 instance Show GoldilocksExt where
   show (MkExt real imag) = "(" ++ show real ++ " + X*" ++ show imag ++ ")"
+
+instance Pretty GoldilocksExt where 
+  prettyPrec d (MkExt real imag) 
+    | imag == 0   = prettyPrec 0 real
+    | otherwise   = showParen (d > 5) 
+                  $ prettyPrec 0 real . showString " + X*" . prettyPrec 0 imag
 
 instance ToJSON GoldilocksExt where
   toJSON (MkExt a b) = toJSON (a,b)
@@ -79,5 +87,13 @@ powExt x e
     go !acc !s !expo = case expo .&. 1 of
       0 -> go acc     (sqrExt s) (shiftR expo 1)
       _ -> go (acc*s) (sqrExt s) (shiftR expo 1)
+
+--------------------------------------------------------------------------------
+
+rndExt :: IO FExt
+rndExt = do
+  x <- rndF
+  y <- rndF
+  return (MkExt x y)
 
 --------------------------------------------------------------------------------

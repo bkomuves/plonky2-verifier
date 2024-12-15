@@ -40,10 +40,8 @@ fast_PARTIAL_ROUND_CONSTANTS = listArray (0,21)
   , 0x1aca78f31c97c876 , 0x0
   ]
 
-{-
-
-fast_PARTIAL_ROUND_VS :: [Array Int F] 
-fast_PARTIAL_ROUND_VS = map (listArray (0,10))
+fast_PARTIAL_ROUND_VS :: Array Int (Array Int F)
+fast_PARTIAL_ROUND_VS = listArray (0,21) $ map (listArray (0,10))
   [ [0x94877900674181c3, 0xc6c67cc37a2a2bbd, 0xd667c2055387940f, 0x0ba63a63e94b5ff0, 0x99460cc41b8f079f, 0x7ff02375ed524bb3, 0xea0870b47a8caf0e, 0xabcad82633b7bc9d, 0x3b8d135261052241, 0xfb4515f5e5b0d539, 0x3ee8011c2b37f77c ]
   , [0x0adef3740e71c726, 0xa37bf67c6f986559, 0xc6b16f7ed4fa1b00, 0x6a065da88d8bfc3c, 0x4cabc0916844b46f, 0x407faac0f02e78d1, 0x07a786d9cf0852cf, 0x42433fb6949a629a, 0x891682a147ce43b0, 0x26cfd58e7b003b55, 0x2bbf0ed7b657acb3 ]
   , [0x481ac7746b159c67, 0xe367de32f108e278, 0x73f260087ad28bec, 0x5cfc82216bc1bdca, 0xcaccc870a2663a0e, 0xdb69cd7b4298c45d, 0x7bc9e0c57243e62d, 0x3cc51c5d368693ae, 0x366b4e8cc068895b, 0x2bd18715cdabbca4, 0xa752061c4f33b8cf ]
@@ -68,8 +66,8 @@ fast_PARTIAL_ROUND_VS = map (listArray (0,10))
   , [0x0000000000000014, 0x0000000000000022, 0x0000000000000012, 0x0000000000000027, 0x000000000000000d, 0x000000000000000d, 0x000000000000001c, 0x0000000000000002, 0x0000000000000010, 0x0000000000000029, 0x000000000000000f ]  
   ]
 
-fast_PARTIAL_ROUND_W_HATS :: [Array Int F] 
-fast_PARTIAL_ROUND_W_HATS = map (listArray (0,10))
+fast_PARTIAL_ROUND_W_HATS :: Array Int (Array Int F)
+fast_PARTIAL_ROUND_W_HATS = listArray (0,21) $ map (listArray (0,10))
   [ [0x3d999c961b7c63b0, 0x814e82efcd172529, 0x2421e5d236704588, 0x887af7d4dd482328, 0xa5e9c291f6119b27, 0xbdc52b2676a4b4aa, 0x64832009d29bcf57, 0x09c4155174a552cc, 0x463f9ee03d290810, 0xc810936e64982542, 0x043b1c289f7bc3ac ]
   , [0x673655aae8be5a8b, 0xd510fe714f39fa10, 0x2c68a099b51c9e73, 0xa667bfa9aa96999d, 0x4d67e72f063e2108, 0xf84dde3e6acda179, 0x40f9cc8c08f80981, 0x5ead032050097142, 0x6591b02092d671bb, 0x00e18c71963dd1b7, 0x8a21bcd24a14218a ]
   , [0x202800f4addbdc87, 0xe4b5bdb1cc3504ff, 0xbe32b32a825596e7, 0x8e0f68c5dc223b9a, 0x58022d9e1c256ce3, 0x584d29227aa073ac, 0x8b9352ad04bef9e7, 0xaead42a3f445ecbf, 0x3c667a1d833a3cca, 0xda6f61838efa1ffe, 0xe8f749470bd7c446 ]
@@ -94,8 +92,6 @@ fast_PARTIAL_ROUND_W_HATS = map (listArray (0,10))
   , [0x3abeb80def61cc85, 0x9d19c9dd4eac4133, 0x075a652d9641a985, 0x9daf69ae1b67e667, 0x364f71da77920a18, 0x50bd769f745c95b1, 0xf223d1180dbbf3fc, 0x2f885e584e04aa99, 0xb69a0fa70aea684a, 0x09584acaa6e062a0, 0x0bc051640145b19b ]
   ]
 
--}
-
 -- ^ NB: This is in ROW-major order to support cache-friendly pre-multiplication.
 fast_PARTIAL_ROUND_INITIAL_MATRIX :: Array (Int,Int) F
 fast_PARTIAL_ROUND_INITIAL_MATRIX = listArray ((0,0),(10,10)) $ concat
@@ -111,6 +107,9 @@ fast_PARTIAL_ROUND_INITIAL_MATRIX = listArray ((0,0),(10,10)) $ concat
   , [0x156048ee7a738154, 0x91f7562377e81df5, 0xd8a2eb7ef5e707ad, 0x4db9a2ead2bd7262, 0x1d7f8a2cce1a9d00, 0x4b1ba8d40afca97d, 0x5e40f0c9bb82aab5, 0xc537d44dc2875403, 0x14a4a64da0b2668f, 0xb124c33152a2421a, 0xdc927721da922cf8 ]
   , [0xd841e8ef9dde8ba0, 0x156048ee7a738154, 0x85418a9fef8a9890, 0x64dd936da878404d, 0x726af914971c1374, 0x7f8e41e0b0a6cdff, 0xf97abba0dffb6c50, 0xf4a437f2888ae909, 0xdcedab70f40718ba, 0xe796d293a47a64cb, 0x80772dc2645b280b ]
   ]
+
+partialMdsMatrixCoeff :: Int -> Int -> F
+partialMdsMatrixCoeff i j = fast_PARTIAL_ROUND_INITIAL_MATRIX ! (j,i) 
 
 partition12 :: [a] -> [[a]]
 partition12 = go where

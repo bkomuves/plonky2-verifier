@@ -14,12 +14,15 @@ import Data.Word
 import Data.Ratio
 import Data.Array
 
+import Text.Show
 import Text.Printf
 
 import System.Random
 
 import GHC.Generics
 import Data.Aeson ( ToJSON(..), FromJSON(..) )
+
+import Misc.Pretty
 
 --------------------------------------------------------------------------------
 
@@ -77,6 +80,8 @@ asInteger (Goldilocks x) = x
 instance Show Goldilocks where
   show (Goldilocks x) = show x                    -- decimal
   -- show (Goldilocks x) = printf "0x%016x" x        -- hex
+
+instance Pretty Goldilocks where prettyPrec _ x = shows x
 
 --------------------------------------------------------------------------------
 
