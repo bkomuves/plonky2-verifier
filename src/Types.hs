@@ -20,6 +20,7 @@ import Algebra.GoldilocksExt
 import Hash.Digest
 import Gate.Base
 import Gate.Parser
+import Misc.Aux
 
 --------------------------------------------------------------------------------
 
@@ -47,12 +48,15 @@ data CommonCircuitData = MkCommonCircuitData
   , circuit_num_constants          :: Int              -- ^ The number of constant wires.
   , circuit_num_public_inputs      :: Int              -- ^ Number of public inputs
   , circuit_k_is                   :: [F]              -- ^ The @{k_i}@ values (coset shifts) used in @S_I D_i@ in Plonk's permutation argument.
-  , circuit_num_partial_products   :: Int              -- ^ The number of partial products needed to compute the `Z` polynomials.
+  , circuit_num_partial_products   :: Int              -- ^ The number of partial products needed to compute the `Z` polynomials; @ = ceil( #routed / max_degree ) - 1@
   , circuit_num_lookup_polys       :: Int              -- ^ The number of lookup polynomials.
   , circuit_num_lookup_selectors   :: Int              -- ^ The number of lookup selectors.
   , circuit_luts                   :: [LookupTable]    -- ^ The stored lookup tables.
   }
   deriving (Eq,Show,Generic)
+
+circuit_nrows :: CommonCircuitData -> Int
+circuit_nrows = fri_nrows . circuit_fri_params
 
 instance FromJSON CommonCircuitData where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 8 }
 --instance ToJSON   CommonCircuitData where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 8 }
@@ -73,16 +77,6 @@ data CircuitConfig = MkCircuitConfig
 
 instance FromJSON CircuitConfig where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 7 }
 instance ToJSON   CircuitConfig where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 7 }
-
--- | The interval @[a,b)@ (inclusive on the left, exclusive on the right)
-data Range = MkRange 
-  { range_start :: Int
-  , range_end   :: Int
-  }
-  deriving (Eq,Show,Generic)
-
-instance FromJSON Range where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 6 }
-instance ToJSON   Range where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 6 }
 
 data SelectorsInfo = MkSelectorsInfo
   { selector_indices :: [Int]             -- ^ which gate is in which selector groups (length = number of gates)
@@ -152,6 +146,11 @@ data FriParams = MkFriParams
   , fri_reduction_arity_bits :: [Int]       -- ^ The arity of each FRI reduction step, expressed as the log2 of the actual arity.
   }
   deriving (Eq,Show,Generic)
+
+-- | Number of rows in the circuit
+fri_nrows :: FriParams -> Int
+fri_nrows params = 2^nbits where
+  nbits = fri_degree_bits params
 
 instance FromJSON FriParams where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
 instance ToJSON   FriParams where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
@@ -243,15 +242,15 @@ data Proof = MkProof
   deriving (Eq,Show,Generic,ToJSON,FromJSON)
 
 data OpeningSet = MkOpeningSet
-  { opening_constants        :: [FExt]
-  , opening_plonk_sigmas     :: [FExt]
-  , opening_wires            :: [FExt]
-  , opening_plonk_zs         :: [FExt]
-  , opening_plonk_zs_next    :: [FExt]
-  , opening_partial_products :: [FExt]
-  , opening_quotient_polys   :: [FExt]
-  , opening_lookup_zs        :: [FExt]
-  , opening_lookup_zs_next   :: [FExt]
+  { opening_constants        :: [FExt]         -- ^ note: this includes the selector columns!
+  , opening_plonk_sigmas     :: [FExt]         -- ^ these correspond to columns encoding the wire permutation (as many as routed columns)
+  , opening_wires            :: [FExt]         -- ^ these are evaluations of the witness columns
+  , opening_plonk_zs         :: [FExt]         -- ^ first columns of the permutation arguments (there @num_challenges@ number of these)
+  , opening_plonk_zs_next    :: [FExt]         -- ^ evaluations of the first columns shifted by \"one row\"
+  , opening_partial_products :: [FExt]         -- ^ remaining columns of the permutation arguments
+  , opening_quotient_polys   :: [FExt]         -- ^ the quotient polynomials (@num_challenges * max_degree@)
+  , opening_lookup_zs        :: [FExt]         -- ^ first columns of the lookup arguments
+  , opening_lookup_zs_next   :: [FExt]         -- ^ rest of the lookup arguments
   }
   deriving (Eq,Show,Generic)
 

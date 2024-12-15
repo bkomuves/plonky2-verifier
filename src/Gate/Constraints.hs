@@ -5,19 +5,14 @@
 -- of constraints.
 --
 
-{-# LANGUAGE StrictData, DeriveFunctor, GADTs, RecordWildCards #-}
+{-# LANGUAGE StrictData, RecordWildCards #-}
 module Gate.Constraints where
 
 --------------------------------------------------------------------------------
 
-import Prelude hiding ( (^) )
-
+import Prelude    hiding ( (^) )
 import Data.Array hiding (range)
 import Data.Char
-import Text.Show
-
-import Data.IntMap (IntMap)
-import qualified Data.IntMap as IntMap
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
@@ -27,6 +22,8 @@ import Gate.Base
 import Gate.Vars
 import Gate.Computation
 import Gate.Poseidon
+
+import Misc.Aux
 
 --------------------------------------------------------------------------------
 -- * Gate constraints
@@ -87,7 +84,7 @@ gateComputation gate =
 
     -- equality with "hardcoded" hash components
     PublicInputGate 
-      -> commitList [ hash i - wire i | i <- range 4 ]
+      -> commitList [ wire i - hash i | i <- range 4 ]
 
     PoseidonGate hash_width -> case hash_width of
       12 -> poseidonGateConstraints

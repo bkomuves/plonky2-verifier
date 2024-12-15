@@ -10,6 +10,7 @@ module Hash.Constants where
 import Data.Array
 
 import Algebra.Goldilocks
+import Misc.Aux
 
 --------------------------------------------------------------------------------
 
@@ -111,13 +112,8 @@ fast_PARTIAL_ROUND_INITIAL_MATRIX = listArray ((0,0),(10,10)) $ concat
 partialMdsMatrixCoeff :: Int -> Int -> F
 partialMdsMatrixCoeff i j = fast_PARTIAL_ROUND_INITIAL_MATRIX ! (j,i) 
 
-partition12 :: [a] -> [[a]]
-partition12 = go where
-  go [] = []
-  go xs = take 12 xs : go (drop 12 xs)
-
 all_ROUND_CONSTANTS :: Array Int (Array Int F)
-all_ROUND_CONSTANTS = listArray (0,29) $ map (listArray (0,11)) $ partition12
+all_ROUND_CONSTANTS = listArray (0,29) $ map (listArray (0,11)) $ partition 12
   [ 0xb585f766f2144405 , 0x7746a55f43921ad7 , 0xb2fb0d31cee799b4 , 0x0f6760a4803427d7
   , 0xe10d666650f4e012 , 0x8cae14cb07d09bf1 , 0xd438539c95f63e9f , 0xef781c7ce35b4c3d
   , 0xcdc4a239b0c44426 , 0x277fa208bf337bff , 0xe17653a29da578a1 , 0xc54302f225db2c76

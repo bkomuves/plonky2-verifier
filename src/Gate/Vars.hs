@@ -44,9 +44,6 @@ instance Pretty v => Pretty (Var v) where
 --------------------------------------------------------------------------------
 -- * Convenience
 
-range :: Int -> [Int]
-range k = [0..k-1]
-
 wire, cnst, hash :: Int -> Expr (Var PlonkyVar)
 wire i = VarE $ ProofVar $ WireV  i       -- witness variable
 cnst i = VarE $ ProofVar $ ConstV i       -- constant variable

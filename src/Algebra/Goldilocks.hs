@@ -147,6 +147,9 @@ div a b = mul a (inv b)
 
 --------------------------------------------------------------------------------
 
+pow_ :: Goldilocks -> Int -> Goldilocks
+pow_ x e = pow x (fromIntegral e)
+
 pow :: Goldilocks -> Integer -> Goldilocks
 pow x e 
   | e == 0    = 1

@@ -63,6 +63,9 @@ instance Fractional FExt where
 
 --------------------------------------------------------------------------------
 
+scaleExt :: F -> FExt -> FExt
+scaleExt s (MkExt a b) = MkExt (s*a) (s*b)
+
 sqrExt :: FExt -> FExt
 sqrExt x = x*x
 
@@ -76,6 +79,9 @@ divExt :: FExt -> FExt -> FExt
 divExt u v = u * invExt v
 
 --------------------------------------------------------------------------------
+
+powExt_ :: GoldilocksExt -> Int -> GoldilocksExt
+powExt_ x e = powExt x (fromIntegral e)
 
 powExt :: GoldilocksExt -> Integer -> GoldilocksExt
 powExt x e 

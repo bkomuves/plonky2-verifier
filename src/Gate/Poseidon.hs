@@ -21,6 +21,8 @@ import Gate.Vars
 import Gate.Computation
 import Hash.Constants
 
+import Misc.Aux
+
 --------------------------------------------------------------------------------
 
 sbox :: Expr Var_ -> Compute (Expr Var_)
@@ -49,7 +51,7 @@ poseidonGateConstraints = do
   -- merkle swap
   let input_lhs i = input  i 
   let input_rhs i = input (i+4)
-  commit     $ (1 - swap_flag) * swap_flag
+  commit     $ swap_flag * (swap_flag - 1)
   commitList [ swap_flag * (input_rhs i - input_lhs i) - delta i | i <- range 4 ]
 
   -- swapped inputs

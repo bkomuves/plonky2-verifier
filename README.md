@@ -25,8 +25,9 @@ try to focus on simplicity.
 - [ ] Parsing from Plonky's custom binary serialization
 - [x] Generating verifier challenges
 - [ ] Recursive circuit subtle details (like [this](https://github.com/0xPolygonZero/plonky2/blob/356aefb6863ac881fb71f9bf851582c915428458/plonky2/src/fri/challenges.rs#L55-L64]))
-- [ ] Constraints check
+- [x] Constraints check
 - [ ] FRI check
+- [ ] Support lookup tables
 - [ ] Documenting Plonky2 internals and the verifier algorithm
 
 Supported gates:
