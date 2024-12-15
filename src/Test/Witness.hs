@@ -16,8 +16,11 @@ import Algebra.Goldilocks
 import Algebra.GoldilocksExt
 
 import Gate.Base
+import Gate.Vars
 import Gate.Computation
 import Gate.Constraints
+
+import Misc.Pretty
 
 --------------------------------------------------------------------------------
 
@@ -68,15 +71,26 @@ test_fibonacci = do
   let const_prg = gateProgram (ConstantGate    2)
 
   let arith_evals = runStraightLine (fmap fromBase arith_row) arith_prg  
-  let const_evals = runStraightLine (fmap fromBase const_row) const_prg
   let posei_evals = runStraightLine (fmap fromBase posei_row) posei_prg
+  let const_evals = runStraightLine (fmap fromBase const_row) const_prg
 
-  putStrLn $ "number of constants in ArithmeticGate = " ++ show (length arith_evals)
-  putStrLn $ "number of constants in ConstantGate   = " ++ show (length const_evals)
-  putStrLn $ "number of constants in PosiedoGate    = " ++ show (length posei_evals)
+  putStrLn $ "number of constraints in ArithmeticGate  = " ++ show (length arith_evals)
+  putStrLn $ "number of constraints in PosiedonGate    = " ++ show (length posei_evals)
+  -- putStrLn $ "number of constraints in PublicInputGate = " ++ show (length pubio_evals)
+  putStrLn $ "number of constraints in ConstGate       = " ++ show (length const_evals)
+
+  putStrLn $ "number of operations in ArithmeticGate  = " ++ show (straightLineOperCount arith_prg)
+  putStrLn $ "number of operations in PosiedonGate    = " ++ show (straightLineOperCount posei_prg)
+  putStrLn $ "number of operations in PublicInputGate = " ++ show (straightLineOperCount pubio_prg)
+  putStrLn $ "number of operations in ConstGate       = " ++ show (straightLineOperCount const_prg)
 
   print arith_evals
-  print const_evals
   print posei_evals
+  print const_evals
+
+  -- printStraightLine posei_prg
   
 --------------------------------------------------------------------------------
+
+main :: IO
+main = test_fibonacci

@@ -61,7 +61,13 @@ type Def_     = LocalDef Var_
 type Compute a = Program (Instr Var_) a
 
 let_ :: String -> Expr Var_ -> Compute (Expr Var_)
-let_ name rhs = VarE <$> Instr (Let name rhs)
+let_ name rhs = case rhs of
+  VarE _  -> return rhs
+  LitE _  -> return rhs
+  _       -> VarE <$> Instr (Let name rhs)
+
+lets_ :: [Expr Var_] -> Compute [Expr Var_]
+lets_ = mapM (let_ "") 
 
 commit :: Expr Var_ -> Compute ()
 commit what = Instr (Commit what)
@@ -72,8 +78,11 @@ commitList = mapM_ commit
 --------------------------------------------------------------------------------
 -- | Straightline programs
 
-data LocalDef v 
-  = MkLocalDef Int String (Expr v)
+data LocalDef v = MkLocalDef 
+  { localDefVarIdx  :: Int
+  , localDefVarName :: String 
+  , localDefRHS     :: Expr v
+  }
   deriving (Eq,Show)
 
 instance Pretty v => Pretty (LocalDef v) where
@@ -108,6 +117,12 @@ compileToStraightLine = fst . go emptyStraightLine where
          Let name rhs -> let def    = MkLocalDef counter name rhs
                              state' = MkStraightLine (def:localdefs) commits (counter+1)
                          in  (state', LocalVar counter name)
+
+straightLineOperCount :: StraightLine -> OperCount
+straightLineOperCount (MkStraightLine{..}) = final where
+  defs  = map exprOperCount $ map localDefRHS localdefs
+  coms  = map exprOperCount $ commits
+  final = mconcat defs <> mconcat coms  
 
 --------------------------------------------------------------------------------
 

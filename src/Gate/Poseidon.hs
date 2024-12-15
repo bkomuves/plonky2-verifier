@@ -24,11 +24,13 @@ import Hash.Constants
 --------------------------------------------------------------------------------
 
 sbox :: Expr Var_ -> Compute (Expr Var_)
-sbox x = do
+sbox x0 = do
+  x  <- let_ "x1_" x0
   x2 <- let_ "x2_" (x *x )
   x3 <- let_ "x3_" (x *x2)
   x4 <- let_ "x4_" (x2*x2)
-  return (x3*x4)
+  x7 <- let_ "x7_" (x3*x4)
+  return x7
 
 flipFoldM :: (Foldable t, Monad m) => b -> t a -> (b -> a -> m b) -> m b
 flipFoldM s0 list action = foldM action s0 list
@@ -70,15 +72,15 @@ poseidonGateConstraints = do
     return $ mds state4
 
   -- partial rounds
-  let state'  = zipWith (+) phase1 (map LitE $ elems fast_PARTIAL_FIRST_ROUND_CONSTANT)
-  let state'' = mdsInitPartial state'
+  state'  <- lets_ $ zipWith (+) phase1 (map LitE $ elems fast_PARTIAL_FIRST_ROUND_CONSTANT)
+  state'' <- lets_ $ mdsInitPartial state'
   phase2 <- flipFoldM state'' [0..21] $ \state1 r -> do
     let sbox_in = partial_sbox_in r 
     commit $ (state1!!0) - sbox_in 
     y <- sbox sbox_in
     let z = if r < 21 then y + LitE (fast_PARTIAL_ROUND_CONSTANTS!r) else y
-    let state2 = z : tail state1
-    return $ mdsFastPartial r state2
+    state2 <- lets_ (z : tail state1)
+    lets_ (mdsFastPartial r state2)
   
   -- final full rounds
   phase3 <- flipFoldM phase2 [0..3] $ \state1 r -> do

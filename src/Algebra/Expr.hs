@@ -11,6 +11,8 @@ import Prelude hiding ( (^) )
 
 import Data.Array
 import Data.Char
+import Data.Monoid
+import Data.Semigroup
 
 import Text.Show
 
@@ -35,10 +37,10 @@ data Expr v
 -- instance Pretty var => Show (Expr var) where show = pretty
 
 -- | Degree of the expression
-exprDegree :: Expr var -> Int
-exprDegree = go where
+exprDegree :: (var -> Int) -> Expr var -> Int
+exprDegree varDeg = go where
   go expr = case expr of
-    VarE  _    -> 1
+    VarE  v    -> varDeg v
     LitE  _    -> 0
     AddE e1 e2 -> max (go e1) (go e2)
     SubE e1 e2 -> max (go e1) (go e2)
@@ -67,6 +69,31 @@ addE = AddE
 mulE :: Expr var -> Expr var -> Expr var
 mulE = MulE 
 -}
+
+--------------------------------------------------------------------------------
+-- * Operation counting
+
+data OperCount = MkOperCount 
+  { numberOfAdds :: Int
+  , numberOfMuls :: Int
+  }
+  deriving (Eq,Show)
+
+instance Semigroup OperCount where
+  (<>) (MkOperCount a1 m1) (MkOperCount a2 m2) = MkOperCount (a1+a2) (m1+m2)
+
+instance Monoid OperCount where
+  mempty = MkOperCount 0 0
+
+exprOperCount :: Expr var -> OperCount
+exprOperCount = go where
+  go expr = case expr of
+    VarE _     -> mempty
+    LitE e     -> mempty
+    AddE e1 e2 -> go e1 <> go e2 <> MkOperCount 1 0
+    SubE e1 e2 -> go e1 <> go e2 <> MkOperCount 1 0
+    MulE e1 e2 -> go e1 <> go e2 <> MkOperCount 0 1
+    ImgE e     -> go e           <> MkOperCount 0 1
 
 --------------------------------------------------------------------------------
 -- * pretty printing
