@@ -70,6 +70,11 @@ test_fibonacci = do
   let pubio_prg = gateProgram (PublicInputGate  )
   let const_prg = gateProgram (ConstantGate    2)
 
+  putStrLn $ "maximum degree of constraints in ArithmeticGate  = " ++ show (constraintDegree arith_prg)
+  putStrLn $ "maximum degree of constraints in PosiedonGate    = " ++ show (constraintDegree posei_prg)
+  putStrLn $ "maximum degree of constraints in PublicInputGate = " ++ show (constraintDegree pubio_prg)
+  putStrLn $ "maximum degree of constraints in ConstGate       = " ++ show (constraintDegree const_prg)
+
   let arith_evals = runStraightLine (fmap fromBase arith_row) arith_prg  
   let posei_evals = runStraightLine (fmap fromBase posei_row) posei_prg
   let const_evals = runStraightLine (fmap fromBase const_row) const_prg
@@ -92,5 +97,5 @@ test_fibonacci = do
   
 --------------------------------------------------------------------------------
 
-main :: IO
+main :: IO ()
 main = test_fibonacci

@@ -18,7 +18,7 @@ data PlonkyVar
   = SelV   Int        -- ^ selector variable
   | ConstV Int        -- ^ constant variable
   | WireV  Int        -- ^ wire variable
-  | PIV    Int        -- ^ public input hash variable
+  | PIV    Int        -- ^ public input hash variable (technically these are constants, not variables)
   deriving (Eq,Ord,Show)
 
 instance Pretty PlonkyVar where

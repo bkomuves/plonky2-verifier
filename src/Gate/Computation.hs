@@ -124,6 +124,18 @@ straightLineOperCount (MkStraightLine{..}) = final where
   coms  = map exprOperCount $ commits
   final = mconcat defs <> mconcat coms  
 
+-- | Maximum degree of a gate's constraints
+constraintDegree :: StraightLine -> Int
+constraintDegree (MkStraightLine{..}) = maxdeg where
+  ndefs = length localdefs
+  table = array (0,ndefs-1) [ (i, exprDegree lkp rhs) | MkLocalDef i _ rhs <- localdefs ]
+  lkp var = case var of
+    LocalVar i _ -> table!i
+    ProofVar v   -> case v of { PIV {} -> 0 ; _ -> 1 }
+  maxdeg = case commits of
+    [] -> 0
+    _  -> maximum (map (exprDegree lkp) commits)
+
 --------------------------------------------------------------------------------
 
 type Scope a = IntMap a
