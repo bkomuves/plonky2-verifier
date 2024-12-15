@@ -78,7 +78,7 @@ instance Pretty var => Pretty (Expr var) where
       LitE x     -> prettyPrec 0 x
       AddE e1 e2 -> showParen (d > add_prec) $ prettyPrec add_prec e1 . showString " + " . prettyPrec (add_prec+1) e2
       SubE e1 e2 -> showParen (d > add_prec) $ prettyPrec add_prec e1 . showString " - " . prettyPrec (add_prec+1) e2
-      MulE e1 e2 -> showParen (d > mul_prec) $ prettyPrec add_prec e1 . showString " * " . prettyPrec (mul_prec+1) e2
+      MulE e1 e2 -> showParen (d > mul_prec) $ prettyPrec mul_prec e1 . showString " * " . prettyPrec (mul_prec+1) e2
       ImgE e     -> showParen (d > mul_prec) $ showString "X*" . (prettyPrec mul_prec e)
     where
       add_prec = 5
