@@ -249,8 +249,8 @@ data OpeningSet = MkOpeningSet
   , opening_plonk_zs_next    :: [FExt]         -- ^ evaluations of the first columns shifted by \"one row\"
   , opening_partial_products :: [FExt]         -- ^ remaining columns of the permutation arguments
   , opening_quotient_polys   :: [FExt]         -- ^ the quotient polynomials (@num_challenges * max_degree@)
-  , opening_lookup_zs        :: [FExt]         -- ^ first columns of the lookup arguments
-  , opening_lookup_zs_next   :: [FExt]         -- ^ rest of the lookup arguments
+  , opening_lookup_zs        :: [FExt]         -- ^ columns of the lookup arguments
+  , opening_lookup_zs_next   :: [FExt]         -- ^ evaluation of the lookup columns evaluated shifted by \"one row\"
   }
   deriving (Eq,Show,Generic)
 
