@@ -8,7 +8,7 @@ This is a (WIP) implementation of a Plonky2 verifier written in Haskell.
 system developed by Polygon Zero, optimized for recursive proofs.
 
 The goal here is to provide an executable specification (along a with less precise,
-but still detailed human language description) of the Plonky2 verification 
+but [still detailed](commentary/Overview.md) human language description) of the Plonky2 verification 
 algorithm. 
 
 Another goal is to be a basis for further tooling (for example:
@@ -28,7 +28,7 @@ try to focus on simplicity.
 - [x] Constraints check
 - [ ] FRI check
 - [ ] Support lookup tables
-- [ ] Documenting Plonky2 internals and the verifier algorithm
+- [x] Documenting Plonky2 internals and the verifier algorithm (WIP)
 
 Supported gates:
 
