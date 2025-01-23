@@ -45,7 +45,7 @@ Supported gates:
 - [x] PublicInputGate
 - [x] PoseidonGate
 - [ ] PoseidonMdsGate
-- [ ] RandomAccessGate
+- [X] RandomAccessGate
 - [ ] ReducingGate
 - [ ] ReducingExtensionGate
 

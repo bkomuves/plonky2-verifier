@@ -22,6 +22,7 @@ import Gate.Base
 import Gate.Vars
 import Gate.Computation
 import Gate.Poseidon
+import Gate.RandomAccess
 
 import Misc.Aux
 
@@ -62,15 +63,7 @@ gateComputation gate =
 
     -- computes `out = base ^ (sum 2^i e_i)`
     -- order of witness variables: [ base, e[0],...,e[n-1], output, t[0]...t[n-1] ]
-    ExponentiationGate num_power_bits 
-      -> let base      = wire 0
-             exp_bit i = wire (i+1)
-             out       = wire (num_power_bits+1)
-             tmp_val 0 = 1
-             tmp_val i = wire (num_power_bits+1+i)
-             cur_bit i = exp_bit (num_power_bits - 1 - i)
-             eq i      = tmp_val (i-1) * (cur_bit i * base + 1 - cur_bit i) - tmp_val i
-         in  commitList $ [ eq i | i <- range num_power_bits ] ++ [ out - tmp_val (num_power_bits-1) ]
+    ExponentiationGate num_power_bits -> exponentiationGateConstraints num_power_bits
 
     -- lookups are handled specially, no constraints here
     LookupGate      num_slots lut_hash              -> return ()
@@ -95,7 +88,7 @@ gateComputation gate =
       k  -> error ( "gateConstraints/PoseidonMdsGate: unsupported width " ++ show k)
 
     RandomAccessGate num_bits num_copies num_extra_constants 
-      -> todo
+      -> randomAccessGateConstraints (MkRACfg num_bits num_copies num_extra_constants)
 
     ReducingGate num_coeffs 
       -> todo
@@ -110,3 +103,28 @@ gateComputation gate =
     todo = error $ "gateConstraints: gate `" ++ takeWhile isAlpha (show gate) ++ "` not yet implemented"
 
 --------------------------------------------------------------------------------
+
+-- computes `out = base ^ (sum 2^i e_i)`
+-- order of witness variables: [ base, e[0],...,e[n-1], output, t[0]...t[n-1] ]
+exponentiationGateConstraints :: Int -> Compute ()
+exponentiationGateConstraints num_power_bits = 
+  do
+    let prev i = if i==0 then 1 else sqr (tmp_val (i-1))
+    let comp i = prev i * (cur_bit i * base + (1 - cur_bit i))
+    let eq   i = comp i - tmp_val i
+    commitList [ eq i | i <- range num_power_bits ] 
+    commit     ( out - tmp_val (num_power_bits-1) )
+  where
+    base       = wire 0
+    exp_bit i  = wire (i+1)
+    out        = wire (num_power_bits+1)
+    tmp_val i  = wire (num_power_bits+2+i)
+    cur_bit i  = exp_bit (num_power_bits - 1 - i)
+    sqr x      = x*x
+
+--------------------------------------------------------------------------------
+
+testExpoGate = runComputation testEvaluationVarsExt (gateComputation (ExponentiationGate 13))
+
+--------------------------------------------------------------------------------
+

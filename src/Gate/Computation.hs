@@ -90,22 +90,29 @@ instance Pretty v => Pretty (LocalDef v) where
 
 -- | A straightline program encoding the computation of constraints
 data StraightLine = MkStraightLine 
-  { localdefs :: [LocalDef Var_]         -- ^ local definitions, in reverse order
-  , commits   :: [Expr_]                 -- ^ committed constraints, in reverse order
+  { localdefs :: [LocalDef Var_]         -- ^ local definitions (during compilation, in reverse order)
+  , commits   :: [Expr_]                 -- ^ committed constraints (during compilation, in reverse order)
   , counter   :: Int                     -- ^ fresh variable counter
   }
   deriving Show
+
+reverseStraightLine :: StraightLine -> StraightLine
+reverseStraightLine (MkStraightLine{..}) = MkStraightLine 
+  { localdefs = reverse localdefs
+  , commits   = reverse commits
+  , counter   = counter
+  }
 
 emptyStraightLine :: StraightLine
 emptyStraightLine = MkStraightLine [] [] 0
 
 printStraightLine :: StraightLine -> IO ()
 printStraightLine (MkStraightLine{..}) = do
-  forM_ (reverse localdefs) $ \def  -> putStrLn (pretty def)
-  forM_ (reverse commits  ) $ \expr -> putStrLn $ "constraint 0 == " ++ (pretty expr)
+  forM_ (localdefs) $ \def  -> putStrLn (pretty def)
+  forM_ (commits  ) $ \expr -> putStrLn $ "constraint 0 == " ++ (pretty expr)
 
 compileToStraightLine :: Compute () -> StraightLine
-compileToStraightLine = fst . go emptyStraightLine where
+compileToStraightLine = reverseStraightLine . fst . go emptyStraightLine where
   go :: StraightLine -> Compute a -> (StraightLine,a) 
   go state instr = case instr of
      Return x       -> (state,x)
@@ -149,9 +156,12 @@ runStraightLine = runStraightLine' emptyScope
 
 runStraightLine' :: Scope FExt -> EvaluationVars FExt -> StraightLine -> [FExt]
 runStraightLine' iniScope vars (MkStraightLine{..}) = result where
-  finalScope = foldl' worker iniScope (reverse localdefs)
-  result = evalConstraints finalScope vars (reverse commits) 
+  finalScope = foldl' worker iniScope (localdefs)
+  result = evalConstraints finalScope vars (commits) 
   worker !scope (MkLocalDef i _ rhs) = IntMap.insert i (evalConstraint scope vars rhs) scope
+
+runComputation :: EvaluationVars FExt -> Compute () -> [FExt]
+runComputation evalvars action = runStraightLine evalvars (compileToStraightLine action)
 
 --------------------------------------------------------------------------------
 -- * Evaluation
@@ -168,6 +178,19 @@ data EvaluationVars a = MkEvaluationVars
   , public_inputs_hash :: [F]              -- ^ only used in @PublicInputGate@
   }
   deriving (Show,Functor)
+
+-- | used for testing the gate constraint
+testEvaluationVarsBase :: EvaluationVars F
+testEvaluationVarsBase = MkEvaluationVars
+  { local_selectors    = listArray (0,  0) []
+  , local_constants    = listArray (0,  1) [666,77]
+  , local_wires        = listArray (0,134) [ 1001 + 71 * fromInteger i | i<-[0..134] ]
+  , public_inputs_hash = [101,102,103,104]
+  }
+
+testEvaluationVarsExt :: EvaluationVars FExt
+testEvaluationVarsExt = fmap f testEvaluationVarsBase where
+  f x = MkExt x 13
 
 evalConstraint :: Scope FExt -> EvaluationVars FExt -> Constraint -> FExt
 evalConstraint scope (MkEvaluationVars{..}) expr = evalExprWith f expr where
