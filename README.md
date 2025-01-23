@@ -45,7 +45,7 @@ Supported gates:
 - [x] NoopGate
 - [x] PublicInputGate
 - [x] PoseidonGate
-- [ ] PoseidonMdsGate
+- [x] PoseidonMdsGate
 - [x] RandomAccessGate
 - [ ] ReducingGate
 - [ ] ReducingExtensionGate

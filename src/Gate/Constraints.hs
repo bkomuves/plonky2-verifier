@@ -49,8 +49,7 @@ gateComputation gate =
            let j  = 8*i
            let c0 = fromBase (cnst 0)
            let c1 = fromBase (cnst 1)
-           let MkExt u v = wireExt (j+6) - c0 * wireExt j * wireExt (j+2) - c1 * wireExt (j+4)
-           commitList [ u , v ]
+           commitExt $ wireExt (j+6) - c0 * wireExt j * wireExt (j+2) - c1 * wireExt (j+4)
 
     -- `sum b^i * limbs[i] - out = 0`, and `0 <= limb[i] < B` is enforced
     BaseSumGate num_limbs base
@@ -79,8 +78,7 @@ gateComputation gate =
     MulExtensionGate num_ops 
       -> forM_ (range num_ops) $ \i -> do
            let j  = 6*i
-           let MkExt u v = wireExt (j+4) - fromBase (cnst 0) * wireExt j * wireExt (j+2) 
-           commitList [ u , v ]
+           commitExt $ wireExt (j+4) - fromBase (cnst 0) * wireExt j * wireExt (j+2) 
 
     NoopGate -> return ()
 
@@ -93,7 +91,7 @@ gateComputation gate =
       k  -> error ( "gateConstraints/PoseidonGate: unsupported width " ++ show k)
 
     PoseidonMdsGate hash_width -> case hash_width of
-      12 -> todo -- poseidonMdsGateConstraints
+      12 -> poseidonMdsGateConstraints
       k  -> error ( "gateConstraints/PoseidonMdsGate: unsupported width " ++ show k)
 
     RandomAccessGate num_bits num_copies num_extra_constants 
@@ -137,14 +135,16 @@ exponentiationGateConstraints num_power_bits =
 testCompute :: Compute () -> [FExt]
 testCompute = runComputation testEvaluationVarsExt 
 
-testArtihExtGate = testCompute $ gateComputation (ArithmeticExtensionGate 10)
-testBaseSum2     = testCompute $ gateComputation (BaseSumGate 13 2)
-testBaseSum3     = testCompute $ gateComputation (BaseSumGate 13 3)
-testExpoGate     = testCompute $ gateComputation (ExponentiationGate 13)
-testMulExtGate   = testCompute $ gateComputation (MulExtensionGate   13)
-testCosetGate3   = testCompute $ cosetInterpolationGateConstraints $ cosetInterpolationGateConfig (Log2 3)
-testCosetGate4   = testCompute $ cosetInterpolationGateConstraints $ cosetInterpolationGateConfig (Log2 4)
-testCosetGate5   = testCompute $ cosetInterpolationGateConstraints $ cosetInterpolationGateConfig (Log2 5)
-testRandAccGate  = testCompute $ randomAccessGateConstraints       $ randomAccessGateConfig       (Log2 4)
+testArtihExtGate    = testCompute $ gateComputation (ArithmeticExtensionGate 10)
+testBaseSum2        = testCompute $ gateComputation (BaseSumGate 13 2)
+testBaseSum3        = testCompute $ gateComputation (BaseSumGate 13 3)
+testExpoGate        = testCompute $ gateComputation (ExponentiationGate 13)
+testMulExtGate      = testCompute $ gateComputation (MulExtensionGate   13)
+testCosetGate3      = testCompute $ cosetInterpolationGateConstraints $ cosetInterpolationGateConfig (Log2 3)
+testCosetGate4      = testCompute $ cosetInterpolationGateConstraints $ cosetInterpolationGateConfig (Log2 4)
+testCosetGate5      = testCompute $ cosetInterpolationGateConstraints $ cosetInterpolationGateConfig (Log2 5)
+testRandAccGate     = testCompute $ randomAccessGateConstraints       $ randomAccessGateConfig       (Log2 4)
+testPoseidonGate    = testCompute $ gateComputation (PoseidonGate    12)
+testPoseidonMdsGate = testCompute $ gateComputation (PoseidonMdsGate 12)
 
 --------------------------------------------------------------------------------

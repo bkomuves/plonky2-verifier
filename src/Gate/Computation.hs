@@ -72,6 +72,9 @@ lets_ = mapM (let_ "")
 commit :: Expr Var_ -> Compute ()
 commit what = Instr (Commit what)
 
+commitExt :: Ext (Expr Var_) -> Compute ()
+commitExt (MkExt u v) = commit u >> commit v
+
 commitList :: [Expr Var_] -> Compute ()
 commitList = mapM_ commit
 

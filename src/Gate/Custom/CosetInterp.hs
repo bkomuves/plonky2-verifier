@@ -51,8 +51,7 @@ calcBarycentricWeights locations = weights where
 cosetInterpolationGateConstraints :: CosetInterpolationGateConfig -> Compute ()
 cosetInterpolationGateConstraints (MkCICfg{..}) = do
 
-  let MkExt u v = eval_loc - scaleExt coset_shift shifted_loc
-  commitList [ u , v ]
+  commitExt $ eval_loc - scaleExt coset_shift shifted_loc
  
   let initials = initial : [ (tmp_eval i , tmp_prod i) | i <- [0..n_intermediates-1] ]
   let chunks   = zip3 chunked_domain chunked_values chunked_weights
@@ -61,13 +60,11 @@ cosetInterpolationGateConstraints (MkCICfg{..}) = do
   let stuff    = zipWith worker initials chunks
 
   forM_ (zip [0..] (init stuff)) $ \(i,(eval,prod)) -> do
-    let MkExt u1 v1 = tmp_eval i - eval
-    let MkExt u2 v2 = tmp_prod i - prod
-    commitList [ u1 , v1 , u2 , v2 ]
+    commitExt (tmp_eval i - eval)
+    commitExt (tmp_prod i - prod)
  
   let (final_eval,_) = last stuff
-  let MkExt u v = eval_result - final_eval
-  commitList [ u , v ]
+  commitExt (eval_result - final_eval)
 
   where
   

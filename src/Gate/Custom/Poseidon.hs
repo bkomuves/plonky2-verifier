@@ -1,5 +1,5 @@
 
--- | Plonky2's Poseidon gate
+-- | Plonky2's Poseidon and PoseidonMds gates
 --
 
 {-# LANGUAGE StrictData, RecordWildCards #-}
@@ -15,6 +15,7 @@ import Control.Monad
 import Control.Monad.State.Strict
 
 import Algebra.Goldilocks
+import Algebra.GoldilocksExt
 import Algebra.Expr
 
 import Gate.Vars
@@ -42,6 +43,20 @@ flipFoldM_ s0 list action = void (foldM action s0 list)
 
 -- | Poseidon state
 type PS = [Expr Var_]
+
+--------------------------------------------------------------------------------
+
+poseidonMdsGateConstraints :: Compute ()
+poseidonMdsGateConstraints = do
+
+  forM_ [0..11] $ \i -> do
+    let result = sum [ scaleExt (LitE (mdsMatrixCoeff i j)) (input j) | j<-[0..11] ] :: Ext (Expr_)
+    commitExt (output i - result) 
+
+  where
+    -- witness variables
+    input  i  = wireExt (2* i    )
+    output i  = wireExt (2*(i+12))
 
 --------------------------------------------------------------------------------
 
