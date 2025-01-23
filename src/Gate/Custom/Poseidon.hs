@@ -3,7 +3,7 @@
 --
 
 {-# LANGUAGE StrictData, RecordWildCards #-}
-module Gate.Poseidon where
+module Gate.Custom.Poseidon where
 
 --------------------------------------------------------------------------------
 

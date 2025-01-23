@@ -28,7 +28,7 @@ data Gate
   = ArithmeticGate          { num_ops    :: Int }
   | ArithmeticExtensionGate { num_ops    :: Int }
   | BaseSumGate             { num_limbs  :: Int , base :: Int }
-  | CosetInterpolationGate  { subgroup_bits :: Int, coset_degree :: Int , barycentric_weights :: [F] }
+  | CosetInterpolationGate  { subgroup_bits :: Int, constr_degree :: Int , barycentric_weights :: [F] }
   | ConstantGate            { num_consts :: Int }
   | ExponentiationGate      { num_power_bits :: Int }
   | LookupGate              { num_slots  :: Int, lut_hash :: KeccakHash }

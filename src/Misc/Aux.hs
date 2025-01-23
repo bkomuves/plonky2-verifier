@@ -7,10 +7,23 @@ module Misc.Aux where
 --------------------------------------------------------------------------------
 
 import Data.Array 
+import Data.Bits
 import Data.List
 
 import Data.Aeson hiding ( Array , pairs )
 import GHC.Generics
+
+--------------------------------------------------------------------------------
+
+newtype Log2 
+  = Log2 Int
+  deriving (Eq,Ord,Show,Num)
+
+fromLog2 :: Log2 -> Int
+fromLog2 (Log2 k) = k
+
+exp2 :: Log2 -> Int
+exp2 (Log2 k) = shiftL 1 k
 
 --------------------------------------------------------------------------------
 
@@ -49,6 +62,13 @@ partition :: Int -> [a] -> [[a]]
 partition k = go where
   go [] = []
   go xs = take k xs : go (drop k xs)
+
+-- | all possible ways to select 1 element out of a (nonempy) list
+select1 :: [a] -> [(a,[a])]
+select1 [] = error "select1: empty list"
+select1 zs = go zs where 
+  go [x]     = [(x,[])]
+  go (x:xs)  = (x,xs) : map (\(y,ys) -> (y,x:ys)) (go xs)
 
 --------------------------------------------------------------------------------
 

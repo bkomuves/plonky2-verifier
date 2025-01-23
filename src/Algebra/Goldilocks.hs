@@ -11,6 +11,7 @@ import qualified Prelude
 
 import Data.Bits
 import Data.Word
+import Data.List
 import Data.Ratio
 import Data.Array
 
@@ -23,6 +24,7 @@ import GHC.Generics
 import Data.Aeson ( ToJSON(..), FromJSON(..) )
 
 import Misc.Pretty
+import Misc.Aux
 
 --------------------------------------------------------------------------------
 
@@ -67,6 +69,14 @@ rootsOfUnity :: Array Int Goldilocks
 rootsOfUnity = listArray (0,32) $ reverse $ go twoAdicGen where
   go 1 = [1]
   go x = x : go (x*x)
+
+subgroupGenerator :: Log2 -> F
+subgroupGenerator (Log2 k) = rootsOfUnity!k
+
+enumerateSubgroup :: Log2 -> [F]
+enumerateSubgroup logSize = scanl' (\x _ -> x*g) 1 [1..n-1] where
+  g = subgroupGenerator logSize
+  n = exp2 logSize
 
 --------------------------------------------------------------------------------
 

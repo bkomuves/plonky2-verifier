@@ -8,8 +8,8 @@ This is a (WIP) implementation of a Plonky2 verifier written in Haskell.
 system developed by Polygon Zero, optimized for recursive proofs.
 
 The goal here is to provide an executable specification (along a with less precise,
-but [still detailed](commentary/Overview.md) human language description) of the Plonky2 verification 
-algorithm. 
+but [still detailed](commentary/Overview.md) human language description) of 
+the Plonky2 verification algorithm. 
 
 Another goal is to be a basis for further tooling (for example:
 estimating verifier costs, helping the design of recursive circuits, generating 
@@ -22,20 +22,21 @@ try to focus on simplicity.
 ### Implementation status
 
 - [x] Parsing the proof and verification key from JSON
-- [ ] Parsing from Plonky's custom binary serialization
+- [ ] Parsing from Plonky2's custom binary serialization
 - [x] Generating verifier challenges
 - [ ] Recursive circuit subtle details (like [this](https://github.com/0xPolygonZero/plonky2/blob/356aefb6863ac881fb71f9bf851582c915428458/plonky2/src/fri/challenges.rs#L55-L64]))
 - [x] Constraints check
 - [ ] FRI check
 - [ ] Support lookup tables
 - [x] Documenting Plonky2 internals and the verifier algorithm (WIP)
+- [ ] Cabalize
 
 Supported gates:
 
 - [x] ArithmeticGate
 - [x] ArithmeticExtensionGate
 - [x] BaseSumGate
-- [ ] CosetInterpolationGate
+- [x] CosetInterpolationGate
 - [x] ConstantGate
 - [x] ExponentiationGate
 - [ ] LookupGate
@@ -45,7 +46,7 @@ Supported gates:
 - [x] PublicInputGate
 - [x] PoseidonGate
 - [ ] PoseidonMdsGate
-- [X] RandomAccessGate
+- [x] RandomAccessGate
 - [ ] ReducingGate
 - [ ] ReducingExtensionGate
 
