@@ -13,6 +13,7 @@ module Gate.Constraints where
 import Prelude    hiding ( (^) )
 import Data.Array hiding (range)
 import Data.Char
+import Control.Monad
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
@@ -44,7 +45,12 @@ gateComputation gate =
 
     -- same but consecutive witness variables make up an extension field element
     ArithmeticExtensionGate num_ops 
-      -> commitList [ wireExt (j+6) - cnst 0 * wireExt j * wireExt (j+2) - cnst 1 * wireExt (j+4) | i<-range num_ops, let j = 8*i ]
+      -> forM_ (range num_ops) $ \i -> do
+           let j  = 8*i
+           let c0 = fromBase (cnst 0)
+           let c1 = fromBase (cnst 1)
+           let MkExt u v = wireExt (j+6) - c0 * wireExt j * wireExt (j+2) - c1 * wireExt (j+4)
+           commitList [ u , v ]
 
     -- `sum b^i * limbs[i] - out = 0`, and `0 <= limb[i] < B` is enforced
     BaseSumGate num_limbs base
@@ -71,7 +77,10 @@ gateComputation gate =
 
     -- `z[i] - c0*x[i]*y[i] = 0`, and two witness cells make up an extension field element
     MulExtensionGate num_ops 
-      -> commitList [ wireExt (j+4) - cnst 0 * wireExt j * wireExt (j+2) | i<-range num_ops, let j = 6*i ]
+      -> forM_ (range num_ops) $ \i -> do
+           let j  = 6*i
+           let MkExt u v = wireExt (j+4) - fromBase (cnst 0) * wireExt j * wireExt (j+2) 
+           commitList [ u , v ]
 
     NoopGate -> return ()
 
@@ -124,7 +133,8 @@ exponentiationGateConstraints num_power_bits =
 
 --------------------------------------------------------------------------------
 
-testExpoGate = runComputation testEvaluationVarsExt (gateComputation (ExponentiationGate 13))
+testArtihExtGate = runComputation testEvaluationVarsExt (gateComputation (ArithmeticExtensionGate 10))
+testMulExtGate   = runComputation testEvaluationVarsExt (gateComputation (MulExtensionGate        13))
+testExpoGate     = runComputation testEvaluationVarsExt (gateComputation (ExponentiationGate      13))
 
 --------------------------------------------------------------------------------
-

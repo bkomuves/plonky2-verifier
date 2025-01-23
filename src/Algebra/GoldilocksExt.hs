@@ -21,33 +21,36 @@ import Misc.Pretty
 
 --------------------------------------------------------------------------------
 
-type FExt = GoldilocksExt
+type GoldilocksExt = Ext Goldilocks
+type FExt          = GoldilocksExt
 
-data GoldilocksExt 
-  = MkExt !Goldilocks !Goldilocks
+--------------------------------------------------------------------------------
+
+data Ext a 
+  = MkExt !a !a
   deriving Eq
 
-fromBase :: Goldilocks -> GoldilocksExt
+fromBase :: Num a => a -> Ext a
 fromBase x = MkExt x 0
 
-instance Show GoldilocksExt where
+instance Show a => Show (Ext a) where
   show (MkExt real imag) = "(" ++ show real ++ " + X*" ++ show imag ++ ")"
 
-instance Pretty GoldilocksExt where 
+instance (Eq a, Num a, Pretty a) => Pretty (Ext a) where 
   prettyPrec d (MkExt real imag) 
     | imag == 0   = prettyPrec 0 real
     | otherwise   = showParen (d > 5) 
                   $ prettyPrec 0 real . showString " + X*" . prettyPrec 0 imag
 
-instance ToJSON GoldilocksExt where
+instance ToJSON a => ToJSON (Ext a) where
   toJSON (MkExt a b) = toJSON (a,b)
 
-instance FromJSON GoldilocksExt where
+instance FromJSON a => FromJSON (Ext a) where
   parseJSON o = (\(a,b) -> MkExt a b) <$> parseJSON o
 
 --------------------------------------------------------------------------------
 
-instance Num FExt where
+instance Num a => Num (Ext a) where
   fromInteger k = MkExt (fromInteger k) 0
   negate (MkExt r i) = MkExt (negate r) (negate i)
   (+) (MkExt r1 i1) (MkExt r2 i2) = MkExt (r1+r2) (i1+i2)
@@ -56,34 +59,34 @@ instance Num FExt where
   signum = const 1
   abs    = id
 
-instance Fractional FExt where
+instance Fractional a => Fractional (Ext a) where
   fromRational q = fromInteger (numerator q) / fromInteger (denominator q)
   recip = invExt
   (/)   = divExt
 
 --------------------------------------------------------------------------------
 
-scaleExt :: F -> FExt -> FExt
+scaleExt :: Num a => a -> Ext a -> Ext a
 scaleExt s (MkExt a b) = MkExt (s*a) (s*b)
 
-sqrExt :: FExt -> FExt
+sqrExt :: Num a => Ext a -> Ext a
 sqrExt x = x*x
 
-invExt :: FExt -> FExt
+invExt :: Fractional a => Ext a -> Ext a
 invExt (MkExt a b) = MkExt c d where
-  denom = inv (a*a - 7*b*b)
+  denom = recip (a*a - 7*b*b)
   c =        a * denom
   d = negate b * denom
 
-divExt :: FExt -> FExt -> FExt
+divExt :: Fractional a => Ext a -> Ext a -> Ext a
 divExt u v = u * invExt v
 
 --------------------------------------------------------------------------------
 
-powExt_ :: GoldilocksExt -> Int -> GoldilocksExt
+powExt_ :: Fractional a => Ext a -> Int -> Ext a
 powExt_ x e = powExt x (fromIntegral e)
 
-powExt :: GoldilocksExt -> Integer -> GoldilocksExt
+powExt :: Fractional a => Ext a -> Integer -> Ext a
 powExt x e 
   | e == 0    = 1
   | e <  0    = powExt (invExt x) (negate e)

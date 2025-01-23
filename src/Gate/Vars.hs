@@ -7,6 +7,7 @@ module Gate.Vars where
 
 import Text.Show
 
+import Algebra.GoldilocksExt
 import Algebra.Expr
 import Misc.Pretty
 
@@ -49,7 +50,8 @@ wire i = VarE $ ProofVar $ WireV  i       -- witness variable
 cnst i = VarE $ ProofVar $ ConstV i       -- constant variable
 hash i = VarE $ ProofVar $ PIV    i       -- public input hash component
 
-wireExt :: Int -> Expr (Var PlonkyVar)
-wireExt i = wire i + ImgE (wire (i+1))    -- use two consecutive variables as an extension field element
+-- use two consecutive variables as a _simulated_ extension field element
+wireExt :: Int -> Ext (Expr (Var PlonkyVar))
+wireExt i = MkExt (wire i) (wire (i+1))     
 
 --------------------------------------------------------------------------------
