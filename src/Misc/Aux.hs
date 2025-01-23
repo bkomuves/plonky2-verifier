@@ -1,7 +1,7 @@
 
 -- | Misc helper functions
 
-{-# LANGUAGE StrictData, DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE StrictData, DeriveGeneric, DeriveAnyClass, GeneralizedNewtypeDeriving, DerivingStrategies #-}
 module Misc.Aux where
 
 --------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ import GHC.Generics
 
 newtype Log2 
   = Log2 Int
-  deriving (Eq,Ord,Show,Num)
+  deriving newtype (Eq,Ord,Show,Num)
 
 fromLog2 :: Log2 -> Int
 fromLog2 (Log2 k) = k

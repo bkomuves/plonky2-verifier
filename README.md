@@ -47,13 +47,12 @@ Supported gates:
 - [x] PoseidonGate
 - [x] PoseidonMdsGate
 - [x] RandomAccessGate
-- [ ] ReducingGate
-- [ ] ReducingExtensionGate
+- [x] ReducingGate
+- [x] ReducingExtensionGate
 
 Optional features:
 
+- [ ] Supporting different hash functions
 - [ ] Field extensions with degree higher than 2
 - [ ] Being parametric over the field choice
-- [ ] Supporting different hash functions
-
 

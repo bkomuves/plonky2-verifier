@@ -22,10 +22,12 @@ import Algebra.Expr
 import Gate.Base
 import Gate.Vars
 import Gate.Computation
+import Misc.Aux
+
 import Gate.Custom.Poseidon
 import Gate.Custom.RandomAccess
 import Gate.Custom.CosetInterp
-import Misc.Aux
+import Gate.Custom.Reducing
 
 --------------------------------------------------------------------------------
 -- * Gate constraints
@@ -98,16 +100,12 @@ gateComputation gate =
       -> randomAccessGateConstraints (MkRACfg (Log2 num_bits) num_copies num_extra_constants)
 
     ReducingGate num_coeffs 
-      -> todo
+      -> reducingGateConstraints num_coeffs
 
     ReducingExtensionGate num_coeffs 
-      -> todo
+      -> reducingExtensionGateConstraints num_coeffs
 
     UnknownGate name -> error ("gateConstraints: unknown gate `" ++ name ++ "`")
-
-  where
- 
-    todo = error $ "gateConstraints: gate `" ++ takeWhile isAlpha (show gate) ++ "` not yet implemented"
 
 --------------------------------------------------------------------------------
 
@@ -146,5 +144,7 @@ testCosetGate5      = testCompute $ cosetInterpolationGateConstraints $ cosetInt
 testRandAccGate     = testCompute $ randomAccessGateConstraints       $ randomAccessGateConfig       (Log2 4)
 testPoseidonGate    = testCompute $ gateComputation (PoseidonGate    12)
 testPoseidonMdsGate = testCompute $ gateComputation (PoseidonMdsGate 12)
+testReducingGate    = testCompute $ gateComputation (ReducingGate          13)
+testReducingExtGate = testCompute $ gateComputation (ReducingExtensionGate 13)
 
 --------------------------------------------------------------------------------
