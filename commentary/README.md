@@ -19,3 +19,10 @@ Then more details can be found at:
 - [Lookups.md](Lookups.md) - Lookup gates and the lookup argument
 - [Recursion.md](Recursion.md) - Recursive proofs
 
+PDF version
+-----------
+
+Unfortunately, `github`'s support of LaTeX inside Markdown is very buggy.
+
+As an experiment I tried to create a [PDF version](commentary.pdf) using
+[Pandoc](https://pandoc.org/).

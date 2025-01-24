@@ -113,7 +113,7 @@ This gate allows dynamically indexing (relatively short) vector of size $2^n$.
 The idea is to decompose the index into bits $\mathsf{idx} = \sum b_i 2^i$; then if you can write down "selectors" like for example
 
 $$
-S_{11} := S_{\mathtt{0b1011}} := b_0(1-b_1)b_2 b_3 = \left\{\begin{array}{ll}
+S_{11} := S_{\mathtt{0b1011}} := b_0(1-b_1)b_2 b_3 = \left\{\begin{array}{lll}
 1, &\textrm{if}& \mathsf{idx} = \mathtt{0b1011}=11 \\
 0, &\textrm{if}& \mathsf{idx} \neq 11
 \end{array}\right.
