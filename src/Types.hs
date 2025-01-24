@@ -45,7 +45,7 @@ data CommonCircuitData = MkCommonCircuitData
   , circuit_selectors_info         :: SelectorsInfo    -- ^ Information on the circuit's selector polynomials.
   , circuit_quotient_degree_factor :: Int              -- ^ The degree of the PLONK quotient polynomial.
   , circuit_num_gate_constraints   :: Int              -- ^ The largest number of constraints imposed by any gate.
-  , circuit_num_constants          :: Int              -- ^ The number of constant wires.
+  , circuit_num_constants          :: Int              -- ^ The number of constant columns wires.
   , circuit_num_public_inputs      :: Int              -- ^ Number of public inputs
   , circuit_k_is                   :: [F]              -- ^ The @{k_i}@ values (coset shifts) used in @S_I D_i@ in Plonk's permutation argument.
   , circuit_num_partial_products   :: Int              -- ^ The number of partial products needed to compute the `Z` polynomials; @ = ceil( #routed / max_degree ) - 1@
@@ -57,6 +57,9 @@ data CommonCircuitData = MkCommonCircuitData
 
 circuit_nrows :: CommonCircuitData -> Int
 circuit_nrows = fri_nrows . circuit_fri_params
+
+circuit_num_luts :: CommonCircuitData -> Int
+circuit_num_luts = length . circuit_luts
 
 instance FromJSON CommonCircuitData where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 8 }
 --instance ToJSON   CommonCircuitData where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 8 }

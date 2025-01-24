@@ -176,6 +176,7 @@ type Constraint = Expr_
 -- Typically this will be the evaluations of the column polynomials at @zeta@
 data EvaluationVars a = MkEvaluationVars
   { local_selectors    :: Array Int a      -- ^ the selectors
+  , local_lkp_sels     :: Array Int a      -- ^ the lookup selectors
   , local_constants    :: Array Int a      -- ^ the circuit constants 
   , local_wires        :: Array Int a      -- ^ the advice wires (witness)
   , public_inputs_hash :: [F]              -- ^ only used in @PublicInputGate@
@@ -186,6 +187,7 @@ data EvaluationVars a = MkEvaluationVars
 testEvaluationVarsBase :: EvaluationVars F
 testEvaluationVarsBase = MkEvaluationVars
   { local_selectors    = listArray (0,  0) []
+  , local_lkp_sels     = listArray (0,  0) []
   , local_constants    = listArray (0,  1) [666,77]
   , local_wires        = listArray (0,134) [ 1001 + 71 * fromInteger i | i<-[0..134] ]
   , public_inputs_hash = [101,102,103,104]
@@ -202,10 +204,11 @@ evalConstraint scope (MkEvaluationVars{..}) expr = evalExprWith f expr where
       Just y  -> y 
       Nothing -> error $ "variable _" ++ n ++ show i ++ " not in scope"
     ProofVar v  -> case v of
-      SelV   k -> local_selectors ! k
-      ConstV k -> local_constants ! k
-      WireV  k -> local_wires     ! k
-      PIV    k -> fromBase (public_inputs_hash !! k)
+      SelV    k -> local_selectors ! k
+      LkpSelV k -> local_lkp_sels  ! k
+      ConstV  k -> local_constants ! k
+      WireV   k -> local_wires     ! k
+      PIV     k -> fromBase (public_inputs_hash !! k)
  
 evalConstraints :: Scope FExt -> EvaluationVars FExt -> [Constraint] -> [FExt]
 evalConstraints scope vars = map (evalConstraint scope vars) 

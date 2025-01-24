@@ -16,18 +16,20 @@ import Misc.Pretty
 
 -- | These index into a row + public input
 data PlonkyVar
-  = SelV   Int        -- ^ selector variable
-  | ConstV Int        -- ^ constant variable
-  | WireV  Int        -- ^ wire variable
-  | PIV    Int        -- ^ public input hash variable (technically these are constants, not variables)
+  = SelV    Int        -- ^ selector variable
+  | LkpSelV Int        -- ^ lookup selector variable
+  | ConstV  Int        -- ^ constant variable
+  | WireV   Int        -- ^ wire variable
+  | PIV     Int        -- ^ public input hash variable (technically these are constants, not variables)
   deriving (Eq,Ord,Show)
 
 instance Pretty PlonkyVar where
   prettyPrec _ v = case v of
-    SelV   k -> showString ("s" ++ show k)
-    ConstV k -> showString ("c" ++ show k)
-    WireV  k -> showString ("w" ++ show k)
-    PIV    k -> showString ("h" ++ show k)
+    SelV    k -> showString ("s" ++ show k)
+    LkpSelV k -> showString ("l" ++ show k)
+    ConstV  k -> showString ("c" ++ show k)
+    WireV   k -> showString ("w" ++ show k)
+    PIV     k -> showString ("h" ++ show k)
 
 --------------------------------------------------------------------------------
 -- * Variables

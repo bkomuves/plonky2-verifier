@@ -48,7 +48,7 @@ main = do
 
   let challenges = proofChallenges common_data verifier_data proof_data
 
-  print challenges
+  -- print challenges
 
   print $ evalCombinedPlonkConstraints common_data proof_data challenges
   print $ checkCombinedPlonkEquations' common_data proof_data challenges

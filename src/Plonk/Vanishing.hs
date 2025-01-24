@@ -64,7 +64,7 @@ combineWithPowersOfAlpha alpha xs = foldl' f 0 (reverse xs) where
 
 evalAllPlonkConstraints :: CommonCircuitData -> ProofWithPublicInputs -> ProofChallenges -> [FExt]
 evalAllPlonkConstraints 
-    (MkCommonCircuitData{..}) 
+    common_data@(MkCommonCircuitData{..}) 
     (MkProofWithPublicInputs{..}) 
     (MkProofChallenges{..}) = finals 
   where
@@ -81,17 +81,17 @@ evalAllPlonkConstraints
     MkProof{..}       = the_proof
     MkOpeningSet{..}  = openings
     
-    nselectors = numSelectorColumns circuit_selectors_info
-    opening_selectors = take nselectors opening_constants
+    MkSelectorConfig{..}   = getSelectorConfig common_data
+    opening_gate_selectors = take numGateSelectors opening_constants
 
     nn      = fri_nrows circuit_fri_params
     maxdeg  = circuit_quotient_degree_factor
     pi_hash = sponge public_inputs
-    
+ 
     -- gate constraints
-    eval_vars  = toEvaluationVars pi_hash circuit_selectors_info openings
+    eval_vars  = toEvaluationVars common_data pi_hash openings
     gate_prgs  = map gateProgram circuit_gates 
-    sel_values = evalSelectors circuit_selectors_info opening_selectors
+    sel_values = evalGateSelectors circuit_selectors_info opening_gate_selectors
     unfiltered = map (runStraightLine eval_vars) gate_prgs
     filtered   = zipWith (\s cons -> map (*s) cons) sel_values unfiltered
     gates      = combineFilteredGateConstraints filtered
@@ -129,16 +129,18 @@ combineFilteredGateConstraints = foldl1 (longZipWith 0 0 (+))
 
 --------------------------------------------------------------------------------
 
-toEvaluationVars :: Digest -> SelectorsInfo -> OpeningSet -> EvaluationVars FExt
-toEvaluationVars pi_hash selinfo (MkOpeningSet{..}) = 
+toEvaluationVars :: CommonCircuitData -> Digest -> OpeningSet -> EvaluationVars FExt
+toEvaluationVars common_data pi_hash (MkOpeningSet{..}) = 
   MkEvaluationVars
-    { local_selectors    = listToArray (take nsels opening_constants)
-    , local_constants    = listToArray (drop nsels opening_constants)
+    { local_selectors    = listToArray gateSelectors  
+    , local_lkp_sels     = listToArray lookupSelectors
+    , local_constants    = listToArray gateConstants  
     , local_wires        = listToArray opening_wires
     , public_inputs_hash = digestToList pi_hash 
     }
   where
-    nsels = numSelectorColumns selinfo
+    selcfg = getSelectorConfig common_data
+    MkConstantColumns{..} = splitConstantColumns selcfg opening_constants
 
 --------------------------------------------------------------------------------
 
