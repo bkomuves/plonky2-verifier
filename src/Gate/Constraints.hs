@@ -130,6 +130,7 @@ exponentiationGateConstraints num_power_bits =
 --------------------------------------------------------------------------------
 -- * Debugging
 
+{-
 testCompute :: Compute () -> [FExt]
 testCompute = runComputation testEvaluationVarsExt 
 
@@ -146,5 +147,6 @@ testPoseidonGate    = testCompute $ gateComputation (PoseidonGate    12)
 testPoseidonMdsGate = testCompute $ gateComputation (PoseidonMdsGate 12)
 testReducingGate    = testCompute $ gateComputation (ReducingGate          13)
 testReducingExtGate = testCompute $ gateComputation (ReducingExtensionGate 13)
+-}
 
 --------------------------------------------------------------------------------

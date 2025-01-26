@@ -26,14 +26,6 @@ import Misc.Aux
 
 --------------------------------------------------------------------------------
 
-{-
--- | Evaluate the zero polynomial @Z_H(x)@
-evalZeroPoly :: Int -> FExt -> FExt
-evalZeroPoly nn zeta = powExt_ zeta nn - 1 
--}
-
---------------------------------------------------------------------------------
-
 -- | Assuming valid FRI openings, this function checks the combined Plonk equations
 checkCombinedPlonkEquations :: CommonCircuitData -> ProofWithPublicInputs -> ProofChallenges -> Bool
 checkCombinedPlonkEquations common proof challenges = 

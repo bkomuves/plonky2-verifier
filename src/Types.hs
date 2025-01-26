@@ -28,6 +28,9 @@ newtype LookupTable
   = MkLookupTable [(Word64,Word64)]
   deriving (Eq,Show,Generic)
 
+fromLookupTable :: LookupTable -> [(F,F)] 
+fromLookupTable (MkLookupTable pairs) = [ (toF inp, toF out) | (inp,out) <- pairs ]
+
 instance ToJSON   LookupTable where toJSON (MkLookupTable x) = toJSON x
 instance FromJSON LookupTable where parseJSON o = MkLookupTable <$> parseJSON o
 

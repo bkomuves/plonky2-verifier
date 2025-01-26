@@ -27,6 +27,14 @@ exp2 (Log2 k) = shiftL 1 k
 
 --------------------------------------------------------------------------------
 
+divCeil :: Int -> Int -> Int
+divCeil n k = div (n+k-1) k
+
+divFloor :: Int -> Int -> Int
+divFloor = div
+
+--------------------------------------------------------------------------------
+
 range :: Int -> [Int]
 range k = [0..k-1]
 
@@ -69,6 +77,9 @@ select1 [] = error "select1: empty list"
 select1 zs = go zs where 
   go [x]     = [(x,[])]
   go (x:xs)  = (x,xs) : map (\(y,ys) -> (y,x:ys)) (go xs)
+
+remove1 :: [a] -> [[a]]
+remove1 = map snd . select1
 
 --------------------------------------------------------------------------------
 

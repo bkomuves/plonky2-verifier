@@ -8,7 +8,7 @@ This is a (WIP) implementation of a Plonky2 verifier written in Haskell.
 system developed by Polygon Zero, optimized for recursive proofs.
 
 The goal here is to provide an executable specification (along a with less precise,
-but [still detailed](commentary/Overview.md) human language description) of 
+but still detailed [human language description](commentary/README.md)) of 
 the Plonky2 verification algorithm. 
 
 Another goal is to be a basis for further tooling (for example:
@@ -27,7 +27,7 @@ try to focus on simplicity.
 - [ ] Recursive circuit subtle details (like [this](https://github.com/0xPolygonZero/plonky2/blob/356aefb6863ac881fb71f9bf851582c915428458/plonky2/src/fri/challenges.rs#L55-L64]))
 - [x] Constraints check
 - [ ] FRI check
-- [ ] Support lookup tables
+- [x] Support lookup tables
 - [x] Documenting Plonky2 internals and the verifier algorithm (WIP)
 - [ ] Cabalize
 
@@ -39,8 +39,8 @@ Supported gates:
 - [x] CosetInterpolationGate
 - [x] ConstantGate
 - [x] ExponentiationGate
-- [ ] LookupGate
-- [ ] LookupTableGate
+- [x] LookupGate
+- [x] LookupTableGate
 - [x] MulExtensionGate
 - [x] NoopGate
 - [x] PublicInputGate
@@ -53,6 +53,7 @@ Supported gates:
 Optional features:
 
 - [ ] Supporting different hash functions
+- [ ] Handle non-standard configurations
 - [ ] Field extensions with degree higher than 2
 - [ ] Being parametric over the field choice
 

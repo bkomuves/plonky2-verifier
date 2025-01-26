@@ -20,9 +20,10 @@ import qualified Data.ByteString.Lazy.Char8 as L
 --------------------------------------------------------------------------------
 
 main = do
-  let prefix = "fibonacci"
+  -- let prefix = "fibonacci"
   -- let prefix = "recursion_outer"
   -- let prefix = "lookup"
+  let prefix = "multi_lookup"
 
   text_common <- L.readFile ("../json/" ++ prefix ++ "_common.json")
   text_vkey   <- L.readFile ("../json/" ++ prefix ++ "_vkey.json"  )

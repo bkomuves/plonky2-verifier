@@ -14,7 +14,7 @@
 -- This is done as many times as there are rounds, with different alphas (chosen from the base field).
 --
 
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StrictData, RecordWildCards #-}
 module Plonk.Vanishing where
 
 --------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ import Data.List ( foldl' , zipWith4 )
 
 import Algebra.Goldilocks
 import Algebra.GoldilocksExt
+import Algebra.Poly
 
 import Challenge.Verifier
 
@@ -34,16 +35,10 @@ import Gate.Computation
 import Gate.Constraints
 import Gate.Selector
 
+import Plonk.Lookups
+
 import Types
 import Misc.Aux
-
---------------------------------------------------------------------------------
-
--- | Evaluate the Lagrange polynomial @L_0(x)@ of a subgroup of size @N@
-evalLagrange0 :: Int -> FExt -> FExt
-evalLagrange0 nn zeta 
-  | zeta == 1  = 1
-  | otherwise  = (powExt_ zeta nn - 1) / (fromIntegral nn * (zeta - 1))
 
 --------------------------------------------------------------------------------
 
@@ -65,8 +60,8 @@ combineWithPowersOfAlpha alpha xs = foldl' f 0 (reverse xs) where
 evalAllPlonkConstraints :: CommonCircuitData -> ProofWithPublicInputs -> ProofChallenges -> [FExt]
 evalAllPlonkConstraints 
     common_data@(MkCommonCircuitData{..}) 
-    (MkProofWithPublicInputs{..}) 
-    (MkProofChallenges{..}) = finals 
+    prf_with_inp@(MkProofWithPublicInputs{..}) 
+    challenges@(MkProofChallenges{..}) = finals 
   where
 
     finals = concat
@@ -76,13 +71,15 @@ evalAllPlonkConstraints
       , gates
       ]
 
-    lookup_checks = []    -- TODO
+    lookup_checks = if null circuit_luts 
+      then [] 
+      else evalLookupEquations common_data lookupSelectors openings challenges
 
     MkProof{..}       = the_proof
     MkOpeningSet{..}  = openings
     
-    MkSelectorConfig{..}   = getSelectorConfig common_data
-    opening_gate_selectors = take numGateSelectors opening_constants
+    selcfg@(MkSelectorConfig{..}) = getSelectorConfig common_data
+    MkConstantColumns{..}         = splitConstantColumns selcfg opening_constants
 
     nn      = fri_nrows circuit_fri_params
     maxdeg  = circuit_quotient_degree_factor
@@ -91,7 +88,7 @@ evalAllPlonkConstraints
     -- gate constraints
     eval_vars  = toEvaluationVars common_data pi_hash openings
     gate_prgs  = map gateProgram circuit_gates 
-    sel_values = evalGateSelectors circuit_selectors_info opening_gate_selectors
+    sel_values = evalGateSelectors circuit_selectors_info gateSelectors 
     unfiltered = map (runStraightLine eval_vars) gate_prgs
     filtered   = zipWith (\s cons -> map (*s) cons) sel_values unfiltered
     gates      = combineFilteredGateConstraints filtered
@@ -112,7 +109,7 @@ evalAllPlonkConstraints
       current = [z] ++ pp_chunk ++ [znext]
       f :: (FExt,FExt) -> [FExt] -> [FExt] -> FExt
       f (prev,next) numer denom = prev * product numer - next * product denom
-      
+
 --------------------------------------------------------------------------------
 
 -- | Each gate has some number of constrains (depending on which gate it is).

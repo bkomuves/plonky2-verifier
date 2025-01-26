@@ -1,5 +1,6 @@
 .DS_Store
+.ghc.*
 _bck*
 json/
-.ghc.*
+tmp/
 *.json
