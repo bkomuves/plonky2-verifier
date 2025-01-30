@@ -14,6 +14,14 @@ These 4 matrices are committed separately, as you have to commit them in separat
 
 For some of them we also need the "next row" opening at $\omega\cdot\zeta$ (namely: ``"zs"``, ``"lookup_zs"``); for the rest we don't.
 
+          constant                witness              permutation         qotient
+    +---+---+----------+   +----------+--------+   +--+-------+------+   +---------+   
+    | s | k |  sigmas  |   |  routed  | advice |   |zs|partial|lookup|   |         |
+    | e | s |          |   |          |        |   |  |       |R     |   |         |
+    | l | t |          |   |          |        |   |  |       |E     |   |         |    
+    +---+---+----------+   +----------+--------+   +--+-------+------+   +---------+
+      #   2      80             80        55        r    9*r    7*r          8*r
+                        
 ### Constant columns
 
 These columns define the structure of the circuit (together with some metadata). They consist of:
@@ -62,6 +70,4 @@ In the final phase of the Plonk protocol (see [Protocol.md](Protocol.md), all th
 This polynomial (with $8\times 2^n$ coefficients) is then chunked into 8 columns.
 
 However, this is also repeated $r$ times, resulting in $(8\cdot r)$ columns.
-
-
 
