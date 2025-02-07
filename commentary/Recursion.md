@@ -22,7 +22,7 @@ Before the outer (recursive) circuit can verify an inner proof, it must take the
         pub opening_proof: FriProofTarget<D>,
     }
   ```
-  along with the above `ProofTarget`, a vector of public input targets corresponding exactly to the number public inputs of the inner proof is also added.
+  Along with the above `ProofTarget`, a vector of public input targets corresponding exactly to the number public inputs of the inner proof is also added.
   As seen above adding a virtual target for the proof requires the common circuit data for the inner proof. This is required because the proof's components (which contain vectors of targets) need to be of known size (not dynamic). For instance, the `MerkleCapTarget` requires the `cap_height` for the inner circuit. These values are taken from the common circuit data which contain many paramaters (mostly in `usize`) and some are taken to generate the targets required for the proof. For all params see [here](https://github.com/0xPolygonZero/plonky2/blob/main/plonky2/src/plonk/circuit_data.rs#L418) but most importantly for the proof we require: `cap_height`, `num_public_inputs`, `num_wires`, `num_challenges`, `num_partial_products`, `num_lookup_polys`, `num_constants`, `quotient_degree_factor`, and `FriParams`. 
 
 - 2. **`add_virtual_verifier_data`**  
@@ -50,7 +50,7 @@ Together, the `ProofTarget` and `VerifierCircuitTarget` allow the outer circuit 
 
 ## 2. Re‑Computing Fiat–Shamir Challenges
 
-Verifying an inner proof require re‑generating the random challenges that the inner prover originally got using the Fiat–Shamir heuristic. Plonky2’s inner proofs require several challenges (see above in section Fiat-Shamir Challenges). The outer (recursive) circuit recomputes these challenges from the committed data in the `VerifierCircuitTarget`. 
+Verifying an inner proof requires re‑generating the random challenges that the inner prover originally got using the Fiat–Shamir heuristic. Plonky2’s inner proofs require several challenges (see above in section Fiat-Shamir Challenges). The outer (recursive) circuit recomputes these challenges from the committed data in the `VerifierCircuitTarget`. 
 
 In the code, recomputing these challenges is implemented by a function `get_challenges` which uses a Challenger (or RecursiveChallenger in the recursive setting) that “observes” each commitment (with functions such as `observe_hash` and `observe_cap`) and then “squeezes” the required challenges at different stages. The challenges are then packaged into a `ProofChallengesTarget` that is later used to verify the proof.
 
@@ -95,7 +95,7 @@ Once the challenges are generated, the proof verification proceeds in-circuit (u
       - Decomposing the query index into bits (to select the appropriate coset in the LDE).
       - Interpolate the coset evaluations (via helpers like `compute_evaluation`) to get the folded value.
       - Verifying that the folded evaluation is consistent with the previous one.
-      - Checking the the Merkle proofs at every reduction round.
+      - Checking the Merkle proofs at every reduction round.
 
     - **Proof‑of‑Work (PoW) Check:**  
       A PoW challenge is enforced by checking that a provided PoW witness (a field element) has the required number of leading zeros.
@@ -129,7 +129,7 @@ The simplist option is that the verifier data should be registered as public inp
 
 Exposing the verifier data as public inputs, requires the verifier to check it "off-circuit", Plonky2 provides the function `check_cyclic_proof_verifier_data`. (ignoring its name, it applies to any recursive proof where the verifier data are public.) This function compares the verifier data extracted from the inner proof’s public inputs with the expected verifier data. this check is especially important in cyclic recursion, where every inner proof must be linked to the same verification key.
 
-It is technically possible to hardcode the verifier data in the circuit, but plonky2 does seem to support this! might require a lot of refactoring! 
+It is technically possible to hardcode the verifier data in the circuit, but plonky2 doesn't seem to support this! might require a lot of refactoring! 
 
 ## Recursion Tools
 Plonky2 implements a few (limited!) number of tools (functions) for recursion, mainly it is the following two: 
@@ -170,7 +170,7 @@ pub fn dummy_proof<F: RichField + Extendable<D>, C: GenericConfig<D, F = F>, con
     ...
 }
 ```
-one thing to note is that if the "real" inner proof public input must be set to certain values, these must also be set in the dummy proof. 
+One thing to note is that if the "real" inner proof public input must be set to certain values, these must also be set in the dummy proof. 
 
 Lastly, the verifier data are set to the verifier data from the dummy circuit. Plonky2 automates setting the values for the dummy proof and verifier data targets using `DummyProofGenerator` so there is no need to keep track of the dummy proof targets. 
 `DummyProofGenerator` simply implements a `SimpleGenerator` and calls `set_proof_with_pis_target` and `set_verifier_data_target`. This means that all the fields required by the recursive verifier (such as the Merkle cap commitments, openings, and the FRI proof components) are populated with dummy values.
@@ -188,48 +188,59 @@ The inner verifier data (which includes the `constants_sigmas_cap` and the `circ
 
 
 ### Example: Simple Recursion
-Now to actually do the recursion, we must first have a base circuit. so let's run an example of how this would work:
+Now to actually do the recursion, we must first have a base circuit. So let's run an example of how this would work:
 
-first let say we have this circuit with just dummy gates `NoopGate` that do nothing. So we first create such circuit, fill in the witness values (no witnesses are here in our example), and then build and generate the proof. See below:
+Let's say we have a circuit with just dummy gates `NoopGate` that do nothing. So we first create such a circuit, fill in the witness values (no witnesses are here in our example), and then build and generate the proof. See below:
 
 ```rust
 // define params:
-const D: usize = 2; // the degree of the extension 
-type C = PoseidonGoldilocksConfig; //the configuration with hash function used (internally)
-type F = <C as GenericConfig<D>>::F; // the field which is the Goldilocks field
-let config = CircuitConfig::standard_recursion_config(); // the circuit config 
-
-let mut builder = CircuitBuilder::<F, D>::new(config.clone()); // create new builder
-for _ in 0..num_dummy_gates { 
-    builder.add_gate(NoopGate, vec![]); //fill the circuit with dummy gates 
+// the degree of the extension 
+const D: usize = 2; 
+//the configuration with hash function used (internally)
+type C = PoseidonGoldilocksConfig; 
+// the field which is the Goldilocks field
+type F = <C as GenericConfig<D>>::F;
+// the circuit config 
+let config = CircuitConfig::standard_recursion_config();
+// create new builder
+let mut builder = CircuitBuilder::<F, D>::new(config.clone()); 
+for _ in 0..num_dummy_gates {
+    //fill the circuit with dummy gates 
+    builder.add_gate(NoopGate, vec![]); 
 }
-
-let inner_data = builder.build::<C>(); // build the circuit
-let inputs = PartialWitness::new(); // fill in the witness values (none here)
-let inner_proof = inner_data.prove(inputs)?; // generate the proof
-let inner_vd = data.verifier_only; // the verifier data (to send to the verifier)
+// build the circuit
+let inner_data = builder.build::<C>();
+// fill in the witness values (none here)
+let inputs = PartialWitness::new();
+// generate the proof
+let inner_proof = inner_data.prove(inputs)?;
+// the verifier data (to send to the verifier)
+let inner_vd = data.verifier_only;
 inner_data.verify(proof.clone())?; 
 ```
-Note: the above doesn't use the zk configration meaning zk is disabled. to enable zk (Zero-Knowledge) use: 
+Note: the above doesn't use the ZK configuration meaning zk is disabled. To enable zk (Zero-Knowledge) use: 
 ```rust
 let config = CircuitConfig::standard_recursion_zk_config()
 ```
 Now once we have the proof (or multiple proofs), we can verify that proof in-circuit and generate yet another proof, the recursive proof. To do so, we need to (again): 
-- define circuit params and builder 
-- create the recursive circuit, 
-- add the witness values (inner-proof and verifier data)
-- build the circuit
-- generate the proof (recursive proof)
-- verify
+- Define circuit params and builder 
+- Create the recursive circuit, 
+- Add the witness values (inner-proof and verifier data)
+- Build the circuit
+- Generate the proof (recursive proof)
+- Verify
 
-see example below:
+See example below:
 
 ```rust
-let mut builder = CircuitBuilder::<F, D>::new(config.clone()); // circuit builder
-let mut pw = PartialWitness::new(); // witness allocator
+// circuit builder
+let mut builder = CircuitBuilder::<F, D>::new(config.clone());
+// witness allocator
+let mut pw = PartialWitness::new(); 
 // a virtual target for the inner proof, here the target is a witness in the recursive circuit
-let inner_proof_target = builder.add_virtual_proof_with_pis(&inner_cd); 
-pw.set_proof_with_pis_target(&pt, &inner_proof)?; // assign the inner_proof as witness
+let inner_proof_target = builder.add_virtual_proof_with_pis(&inner_cd);
+// assign the inner_proof as witness
+pw.set_proof_with_pis_target(&pt, &inner_proof)?;
 // a virtual verifier data, so that the recursive circuit can use it to verify the proof
 // it takes a cap_height which here is the same as the cap_height as the inner_proof
 let inner_data = builder.add_virtual_verifier_data(inner_data.config.fri_config.cap_height);
@@ -240,8 +251,10 @@ pw.set_verifier_data_target(&inner_data, &inner_vd)?;
 // verify the proof in-circuit, ini here InnerC is the configration `C` of the inner circuit
 // this config could be different than the outer circuit (the recursive circuit)
 builder.verify_proof::<InnerC>(&pt, &inner_data, &inner_cd);
-let data = builder.build::<C>(); // build circuit
-data.verify(proof.clone())?; // verify
+// build circuit
+let data = builder.build::<C>();
+// verify
+data.verify(proof.clone())?; 
 ```
 
 ### Example: Conditional Verification
