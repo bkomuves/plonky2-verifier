@@ -3,7 +3,7 @@ Recursive proofs
 
 One of Plonky2 main features is its support for efficient recursive proofs. In a recursive proof system, an outer circuit verifies an inner proof by re‑implementing the entire verification protocol as arithmetic constraints. This allows us to aggregate many proofs into one final (relatively small) proof. In Plonky2, recursion proceeds with the following steps:
 
-## 1. Virtual Targets
+### 1. Virtual Targets
 
 Before the outer (recursive) circuit can verify an inner proof, it must take the inner proof’s data as circuit targets. This is done by two main helper functions:
 
@@ -48,7 +48,7 @@ Before the outer (recursive) circuit can verify an inner proof, it must take the
 Together, the `ProofTarget` and `VerifierCircuitTarget` allow the outer circuit to “see” all of the inner proof’s components and the associated verifier data, so that it can re‑execute the inner verifier’s checks as part of its own constraints.
 
 
-## 2. Re‑Computing Fiat–Shamir Challenges
+### 2. Re‑Computing Fiat–Shamir Challenges
 
 Verifying an inner proof requires re‑generating the random challenges that the inner prover originally got using the Fiat–Shamir heuristic. Plonky2’s inner proofs require several challenges (see above in section Fiat-Shamir Challenges). The outer (recursive) circuit recomputes these challenges from the committed data in the `VerifierCircuitTarget`. 
 
@@ -68,7 +68,8 @@ the challenges produced are:
 - And the FRI challenges: **`fri_alpha`**, **`fri_betas`**, **`fri_pow_response`**, and **`fri_query_indices`**. See above in [FRI](FRI.md)  section for what these are. 
 
 
-## 3. Proof Verification With the Challenges
+### 3. Proof Verification With the Challenges
+
 Once the challenges are generated, the proof verification proceeds in-circuit (using the circuit builder) in similar way as out of the circuit, i.e. following the steps (in short):
 
 1. **Evaluating the Vanishing and Quotient Polynomials**
@@ -102,7 +103,7 @@ Once the challenges are generated, the proof verification proceeds in-circuit (u
 
 For more details refer to the section on [FRI](FRI.md).
 
-## The Recursive Workflow in Practice
+### The Recursive Workflow in Practice
 
 The overall workflow when building a recursive proof in Plonky2 is as follows:
 
@@ -120,7 +121,8 @@ The overall workflow when building a recursive proof in Plonky2 is as follows:
    - Once all the recursive verification constraints are added to the outer circuit, the outer circuit is built and proved as usual.
 
 
-## Notes on The VerifierData
+### Notes on The VerifierData
+
 Verifier data are important part of the recursive proof system because they contain the verification key for the inner circuit. that is, the circuit digest and the commitment to the constant and permutation (“sigma”) polynomials. Although the outer circuit only receives the common circuit data (which describes the structure and sizing of the proof components), that data alone does not bind the outer circuit to a specific inner circuit. So, a prover could provide any proof and verifier data that matches to the common data structure, even if they do not correspond to the intended inner circuit.
 
 To prevent this, the verifier data must be made available to the verifier by: either registering the verifier data as public input or hardcoding it in the outer circuit (this option would limit the outer circuit to the specific inner circuit).
@@ -131,10 +133,11 @@ Exposing the verifier data as public inputs, requires the verifier to check it "
 
 It is technically possible to hardcode the verifier data in the circuit, but plonky2 doesn't seem to support this! might require a lot of refactoring! 
 
-## Recursion Tools
+### Recursion Tools
+
 Plonky2 implements a few (limited!) number of tools (functions) for recursion, mainly it is the following two: 
 
-### 1. Conditional Recursion
+#### 1. Conditional Recursion
 
 The outer (recursion) circuit can be built to conditionally verify one of two input inner proofs based on a Boolean flag. Helper function `conditionally_verify_proof` and `select_proof_with_pis` use a Boolean target to select between two sets of proof targets and verifier data. This allows a circuit, for example, to choose between verifying a “real” inner proof or a dummy proof (useful in cyclic recursion base cases). Selecting the proof and verifier data is done by basicly going through all the targets and selecting either one based on the condition, in the [code](https://github.com/0xPolygonZero/plonky2/blob/main/plonky2/src/recursion/conditional_recursive_verifier.rs) you will see all the (basic) "select" functions. 
 
@@ -175,7 +178,7 @@ One thing to note is that if the "real" inner proof public input must be set to 
 Lastly, the verifier data are set to the verifier data from the dummy circuit. Plonky2 automates setting the values for the dummy proof and verifier data targets using `DummyProofGenerator` so there is no need to keep track of the dummy proof targets. 
 `DummyProofGenerator` simply implements a `SimpleGenerator` and calls `set_proof_with_pis_target` and `set_verifier_data_target`. This means that all the fields required by the recursive verifier (such as the Merkle cap commitments, openings, and the FRI proof components) are populated with dummy values.
 
-### 2. Cyclic Recursion
+#### 2. Cyclic Recursion
 
 Cyclic recursion is used mainly for what is called IVC (incrementally verifiable computation). Meaning (in simple terms) that you create a circuit `C` that checks correct computation of function `f(s)` on the state `s` and returns an updated state `s'` and a proof $\pi$. Then you feed the `s'` and $\pi$ into another circuit that checks $\pi$ and runs the same circuit `C` but with input `s'` so this is basicly `f(f(s))`. Note that the second circuit also ensures that the output of the first circuit `s'` equals to the input to the second circuits. This process can be repeated many times as needed.
 
@@ -184,10 +187,10 @@ In cyclic recursion, the outer circuit needs to verify either an actual inner pr
 The inner verifier data (which includes the `constants_sigmas_cap` and the `circuit_digest`) are registered as public inputs via the `add_virtual_verifier_data`. The outer circuit then “connects” (i.e. ensures equal values are set) this verifier data with its own using the function `conditionally_verify_cyclic_proof`. This ensures that every proof in the cycle uses the same verification key. At the verification step, to guarantee this consistency, the outer circuit verifier can invoke the function `check_cyclic_proof_verifier_data`. This function compares the verifier data obtained from the inner proof’s public inputs with the expected verifier data.
 
 
-## Recursion Examples
+### Recursion Examples
 
 
-### Example: Simple Recursion
+#### Example: Simple Recursion
 Now to actually do the recursion, we must first have a base circuit. So let's run an example of how this would work:
 
 Let's say we have a circuit with just dummy gates `NoopGate` that do nothing. So we first create such a circuit, fill in the witness values (no witnesses are here in our example), and then build and generate the proof. See below:
@@ -257,7 +260,7 @@ let data = builder.build::<C>();
 data.verify(proof.clone())?; 
 ```
 
-### Example: Conditional Verification
+#### Example: Conditional Verification
 
 In some cases you may want the recursive circuit to choose between verifying a real inner proof or a dummy one. This is useful in conditional and cyclic recursion. The dummy proof is generated (using the `DummyProofGenerator`) to fill in when no “real” proof is present. 
 
@@ -290,7 +293,7 @@ builder.conditionally_verify_proof_or_dummy::<C>(
 );
 ```
 
-### Example: Cyclic Recursion with Public Verifier Data
+#### Example: Cyclic Recursion with Public Verifier Data
 In cyclic recursion every inner proof must use the same verification key. For this purpose the verifier data is made public and then checked for consistency. The function check_cyclic_proof_verifier_data is used to enforce that the verifier data from the inner proof (from its public inputs) matches the expected verifier data. See the following example of this:
 
 ```rust
