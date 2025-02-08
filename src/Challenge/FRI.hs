@@ -14,11 +14,9 @@ import Algebra.Goldilocks
 import Algebra.GoldilocksExt
 import Hash.Sponge
 import Hash.Digest
-import Types
 import Challenge.Monad
-
--- import Debug.Trace
--- debug x y z = trace ("\n - " ++ x ++ " -> " ++ show y) z
+import Types
+import Misc.Aux
 
 --------------------------------------------------------------------------------
 
@@ -26,7 +24,7 @@ import Challenge.Monad
 data FriChallenges = MkFriChallenges 
   { fri_alpha         :: FExt        -- ^ Scaling factor to combine polynomials.
   , fri_betas         :: [FExt]      -- ^ Betas used in the FRI commit phase reductions.
-  , fri_pow_response  :: F           -- ^ proof-of-work "response"
+  , fri_pow_response  :: F           -- ^ proof-of-work \"response\"
   , fri_query_indices :: [Int]       -- ^ Indices at which the oracle is queried in FRI.
   }
   deriving (Eq,Show)
@@ -44,7 +42,7 @@ newtype FriOpeningBatch
 absorbFriOpenings :: FriOpenings -> Duplex ()
 absorbFriOpenings (MkFriOpenings batches) = mapM_ (absorb . values) batches
 
--- | Just reordering and concatenating things...
+-- | Just /reordering/ and concatenating things...
 toFriOpenings :: OpeningSet -> FriOpenings 
 toFriOpenings (MkOpeningSet{..}) = MkFriOpenings [ batch_this, batch_next ] 
   where
@@ -92,7 +90,7 @@ friChallenges common_data verifier_data proof = do
   pow_response <- squeeze
 
    -- query indices
-  let lde_size    = shiftL 1 (degree_bits + fri_rate_bits fri_config)
+  let lde_size    = exp2' (degree_bits + fri_rate_bits fri_config)
   let num_fri_queries = fri_num_query_rounds fri_config
   let f :: F -> Int  
       f felt = fromInteger (mod (asInteger felt) lde_size)

@@ -26,6 +26,7 @@ type FExt          = GoldilocksExt
 
 --------------------------------------------------------------------------------
 
+-- | The ring @R[X] / (X^2-7)@
 data Ext a 
   = MkExt !a !a
   deriving Eq
@@ -96,6 +97,13 @@ powExt x e
     go !acc !s !expo = case expo .&. 1 of
       0 -> go acc     (sqrExt s) (shiftR expo 1)
       _ -> go (acc*s) (sqrExt s) (shiftR expo 1)
+
+--------------------------------------------------------------------------------
+
+flattenExt :: [Ext a] -> [a]
+flattenExt = go where
+  go ((MkExt x y) : rest) = x : y : go rest
+  go []                   = []
 
 --------------------------------------------------------------------------------
 

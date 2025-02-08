@@ -41,10 +41,5 @@ spongeWithPad what = go zeroState (what ++ [1]) where
     then listToState $ xs ++ replicate (8-k-1) 0 ++ [1] ++ drop 8 (elems arr)
     else listToState $ xs ++ drop k (elems arr)
 
--- | Compression function for Merkle trees
-compress :: Digest -> Digest -> Digest
-compress x y = extractDigest $ permutation $ listToState s0 where
-  s0 = digestToList x ++ digestToList y ++ [0,0,0,0]
-
 --------------------------------------------------------------------------------
 

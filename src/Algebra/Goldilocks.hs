@@ -132,6 +132,9 @@ modp a = mod a goldilocksPrime
 mkGoldilocks :: Integer -> Goldilocks
 mkGoldilocks = Goldilocks . modp
 
+mulGen :: F
+mulGen = mkGoldilocks 0xc65c18b67785d900
+
 --------------------------------------------------------------------------------
 
 neg :: Goldilocks -> Goldilocks
@@ -173,3 +176,10 @@ pow x e
 
 --------------------------------------------------------------------------------
 
+-- | @sum alpha^i * x_i@
+reduceWithPowers :: Num a => a -> [a] -> a
+reduceWithPowers alpha xs = go xs where
+  go []      = 0
+  go (!x:xs) = x + alpha * go xs
+
+--------------------------------------------------------------------------------

@@ -18,6 +18,9 @@ Plonky2 verifier circuits for other proof systems, etc)
 Note: It's deliberately not a goal for this verifier to be efficient; instead we 
 try to focus on simplicity.
 
+This code can be a bit ugly at some places. There is a reason for that, namely, 
+that the semantics we have to emulate, are _somewhat idiosyncratic_...
+
 
 ### Implementation status
 
@@ -28,6 +31,7 @@ try to focus on simplicity.
 - [x] Constraints check
 - [ ] FRI check
 - [x] Support lookup tables
+- [ ] Support zero-knowledge
 - [x] Documenting Plonky2 internals and the verifier algorithm (WIP)
 - [ ] Cabalize
 

@@ -11,8 +11,10 @@ import Hash.Sponge
 import Hash.Digest
 import Algebra.Goldilocks
 import Challenge.Verifier
-import Plonk.Vanishing
 import Plonk.Verifier
+
+import Plonk.Vanishing
+import Plonk.FRI
 
 import qualified Data.ByteString.Char8      as B
 import qualified Data.ByteString.Lazy.Char8 as L
@@ -21,9 +23,10 @@ import qualified Data.ByteString.Lazy.Char8 as L
 
 main = do
   -- let prefix = "fibonacci"
-  -- let prefix = "recursion_outer"
   -- let prefix = "lookup"
-  let prefix = "multi_lookup"
+  -- let prefix = "multi_lookup"
+  -- let prefix = "recursion_middle"
+  let prefix = "recursion_outer"
 
   text_common <- L.readFile ("../json/" ++ prefix ++ "_common.json")
   text_vkey   <- L.readFile ("../json/" ++ prefix ++ "_vkey.json"  )
@@ -32,7 +35,8 @@ main = do
   let Just common_data   = decode text_common :: Maybe CommonCircuitData
   let Just verifier_data = decode text_vkey   :: Maybe VerifierOnlyCircuitData
   let Just proof_data    = decode text_proof  :: Maybe ProofWithPublicInputs
-  
+  let vkey = MkVerifierCircuitData verifier_data common_data
+
   let pi_hash = sponge (public_inputs proof_data)
   putStrLn $ "public inputs hash = " ++ show pi_hash
 
@@ -53,3 +57,7 @@ main = do
 
   print $ evalCombinedPlonkConstraints common_data proof_data challenges
   print $ checkCombinedPlonkEquations' common_data proof_data challenges
+
+  --  debugFRI common_data verifier_data (the_proof proof_data) challenges
+
+  putStrLn $ "proof verification result = " ++ show (verifyProof vkey proof_data)

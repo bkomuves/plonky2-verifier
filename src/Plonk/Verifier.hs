@@ -18,6 +18,7 @@ import Algebra.GoldilocksExt
 
 import Challenge.Verifier
 import Plonk.Vanishing
+import Plonk.FRI
 
 import Hash.Digest
 
@@ -52,3 +53,15 @@ checkCombinedPlonkEquations' common proof_pis challenges = ok_list where
 
 --------------------------------------------------------------------------------
 
+verifyProof :: VerifierCircuitData -> ProofWithPublicInputs -> Bool
+verifyProof vkey@(MkVerifierCircuitData{..}) pis@(MkProofWithPublicInputs{..}) = all_ok where
+
+  common     = verifier_common
+  challenges = proofChallenges common verifier_only pis
+
+  all_ok = eqs_ok && fri_ok
+
+  eqs_ok = checkCombinedPlonkEquations common pis challenges 
+  fri_ok = checkFRIProof vkey the_proof challenges
+
+--------------------------------------------------------------------------------

@@ -6,6 +6,7 @@ module Types where
 
 import Data.Char
 import Data.Word
+import Data.List
 
 import Data.Aeson
 import qualified Data.Aeson.KeyMap as KeyMap
@@ -33,6 +34,8 @@ fromLookupTable (MkLookupTable pairs) = [ (toF inp, toF out) | (inp,out) <- pair
 
 instance ToJSON   LookupTable where toJSON (MkLookupTable x) = toJSON x
 instance FromJSON LookupTable where parseJSON o = MkLookupTable <$> parseJSON o
+
+----------------------------------------
 
 newtype PolynomialCoeffs coeff
   = MkPolynomialCoeffs { coeffs :: [coeff] }
@@ -72,7 +75,7 @@ data CircuitConfig = MkCircuitConfig
   , config_num_routed_wires           :: Int        -- ^ The number of routed wires, i.e. wires that will be involved in Plonk's permutation argument.
   , config_num_constants              :: Int        -- ^ The number of constants that can be used per gate.
   , config_use_base_arithmetic_gate   :: Bool       -- ^ Whether to use a dedicated gate for base field arithmetic, rather than using a single gate for both base field and extension field arithmetic.
-  , config_security_bits              :: Int        -- ^ Security level target
+  , config_security_bits              :: Log2       -- ^ Security level target
   , config_num_challenges             :: Int        -- ^ The number of challenge points to generate, for IOPs that have soundness errors of (roughly) `degree / |F|`.
   , config_zero_knowledge             :: Bool       -- ^ Option to activate the zero-knowledge property.
   , config_randomize_unused_wires     :: Bool       -- ^ Option to disable randomization (useful for debugging).
@@ -110,10 +113,10 @@ instance ToJSON SelectorsInfo where
 --------------------------------------------------------------------------------
 -- * FRI types
 
-data FriConfig = MkFrConfig 
-  { fri_rate_bits          :: Int                      -- ^ @rate = 2^{-rate_bits}@
-  , fri_cap_height         :: Int                      -- ^ Height of Merkle tree caps.
-  , fri_proof_of_work_bits :: Int                      -- ^ Number of bits used for grinding.
+data FriConfig = MkFriConfig 
+  { fri_rate_bits          :: Log2                     -- ^ @rate = 2^{-rate_bits}@
+  , fri_cap_height         :: Log2                     -- ^ Height of Merkle tree caps.
+  , fri_proof_of_work_bits :: Log2                     -- ^ Number of bits used for grinding.
   , fri_reduction_strategy :: FriReductionStrategy     -- ^ The reduction strategy to be applied at each layer during the commit phase.
   , fri_num_query_rounds   :: Int                      -- ^ Number of query rounds to perform.
   }
@@ -123,9 +126,9 @@ instance FromJSON FriConfig where parseJSON = genericParseJSON defaultOptions { 
 instance ToJSON   FriConfig where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
 
 data FriReductionStrategy 
-  = Fixed             { arity_bits_seq :: [Int] }
-  | ConstantArityBits { arity_bits :: Int , final_poly_bits :: Int }
-  | MinSize           { opt_max_arity_bits :: Maybe Int }
+  = Fixed             { arity_bits_seq :: [Log2] }
+  | ConstantArityBits { arity_bits :: Log2 , final_poly_bits :: Log2 }
+  | MinSize           { opt_max_arity_bits :: Maybe Log2 }
   deriving (Eq,Show,Generic)
 
 instance FromJSON FriReductionStrategy where
@@ -148,15 +151,24 @@ instance ToJSON FriReductionStrategy where
 data FriParams = MkFriParams
   { fri_config               :: FriConfig   -- ^ User-specified FRI configuration.
   , fri_hiding               :: Bool        -- ^ Whether to use a hiding variant of Merkle trees (where random salts are added to leaves).
-  , fri_degree_bits          :: Int         -- ^ The degree of the purported codeword, measured in bits.
-  , fri_reduction_arity_bits :: [Int]       -- ^ The arity of each FRI reduction step, expressed as the log2 of the actual arity.
+  , fri_degree_bits          :: Log2        -- ^ The degree of the purported codeword, measured in bits.
+  , fri_reduction_arity_bits :: [Log2]      -- ^ The arity of each FRI reduction step, expressed as the log2 of the actual arity.
   }
   deriving (Eq,Show,Generic)
 
 -- | Number of rows in the circuit
 fri_nrows :: FriParams -> Int
-fri_nrows params = 2^nbits where
+fri_nrows params = exp2 nbits where
   nbits = fri_degree_bits params
+
+-- | Logarithm of the size of the LDE codeword
+fri_LDE_bits :: FriParams -> Log2
+fri_LDE_bits params = nbits where
+  nbits = fri_degree_bits params + fri_rate_bits (fri_config params)
+
+-- | Number of rows in the LDE codewords
+fri_LDE_nrows :: FriParams -> Int
+fri_LDE_nrows params = exp2 (fri_LDE_bits params)
 
 instance FromJSON FriParams where parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 4 }
 instance ToJSON   FriParams where toJSON    = genericToJSON    defaultOptions { fieldLabelModifier = drop 4 }
@@ -214,6 +226,9 @@ data VerifierCircuitData = MkVerifierCircuitData
 newtype MerkleCap 
   = MkMerkleCap [Digest]
   deriving (Eq,Show,Generic)
+
+merkleCapSize :: MerkleCap -> Int
+merkleCapSize (MkMerkleCap ds) = length ds
 
 instance ToJSON   MerkleCap where toJSON (MkMerkleCap caps) = toJSON caps
 instance FromJSON MerkleCap where parseJSON o = MkMerkleCap <$> parseJSON o
