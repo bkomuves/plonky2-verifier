@@ -104,7 +104,7 @@ evalLookupEquations (MkCommonCircuitData{..}) lkpSels openings challenges = fina
       lut         = fromLookupTable table
       lut_nrows   = length lut `divCeil` num_lut_slots               -- number of rows in this table
       padded_size = lut_nrows * num_lut_slots                        -- padded size of the table
-      lut_padded  = take padded_size $ lut ++ repeat (0,0)           -- NOTE: this padding causes a soundness bug in Plonky2
+      lut_padded  = take padded_size $ lut ++ repeat (head lut)      -- NOTE: the padding was fixed in commit 091047f
       cur_eval    = foldl' (\acc x -> lookup_delta * acc + x) 0 
                       [ (inp + lookup_B * out) | (inp,out) <- lut_padded ]
 

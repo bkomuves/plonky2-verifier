@@ -29,7 +29,7 @@ that the semantics we have to emulate, are _somewhat idiosyncratic_...
 - [x] Generating verifier challenges
 - [ ] Recursive circuit subtle details (like [this](https://github.com/0xPolygonZero/plonky2/blob/356aefb6863ac881fb71f9bf851582c915428458/plonky2/src/fri/challenges.rs#L55-L64]))
 - [x] Constraints check
-- [ ] FRI check
+- [x] FRI check
 - [x] Support lookup tables
 - [ ] Support zero-knowledge
 - [x] Documenting Plonky2 internals and the verifier algorithm (WIP)
