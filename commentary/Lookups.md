@@ -132,7 +132,7 @@ Lookup tables are encoded in several `LookupTable` gates, which are just below e
             +---------------+
             |     ....      |
 
-Both type of gates are padded if necessary to get full rows. The `Lookup` gates are padded with the first entry in the corresponding table, while the `LookupTable` gates are padded with zeros (which is actually a soundness bug, as now you can prove that `(0,0)` is an element of any table whose length is not divisible by 26).
+Both type of gates are padded if necessary to get full rows. The `Lookup` gates are padded with the first entry in the corresponding table, while the `LookupTable` gates used to be padded with zeros (which was actually a soundness bug, as you could prove that `(0,0)` is an element of any table whose length is not divisible by 26), but this was fixed in [commit 091047f](https://github.com/0xPolygonZero/plonky2/commit/091047f7f10cae082716f3738ad59a583835f7b6), and now that's also padded by the first entry.
 
 
 ### Lookup selectors

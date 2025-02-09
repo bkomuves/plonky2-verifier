@@ -230,6 +230,20 @@ As what we really want to compute is $\sum_k \beta^k P_k(x_0^8)$, we can see tha
 
 This can be reinterpreted as interpolating a degree `arity-1` polynomial from these values, and evaluating it at $\beta$, and indeed this is how Plonky2 implements it.
 
+### FRI verifier summary
+
+So what does the verifier needs to check at the end?
+
+- check if the public parameters match the proof "shape" (arities, number of query rounds, Merkle cap sizes, etc)
+- check the proof-of-work response
+- then for each query round:
+    - check the initial tree Merkle proofs against the 4 commitments (constants, witness, partial products and quotient)
+    - compute the evaluation of the combined polynomial from these values (a single row) at the query location
+    - for each folding step:
+        - check the coset opening proof against the corresponding commit phase Merkle cap
+        - check if the right element in the coset values matches the evaluation coming from the previous step (in the very first step, against the above compute value)
+        - calculate the folded value, and pass it to the next step
+    - check the final folded value against the evaluation of the final polynomial
 
 ### FRI verification cost
 
