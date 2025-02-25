@@ -7,7 +7,7 @@ This uses the hash permutation in a duplex construction, alternatively absorbing
 
 All the challenges in the proof are summarized in the following data structure
 
-```
+```rs
 struct ProofChallenges<F: RichField + Extendable<D>, const D: usize> {
   plonk_betas:    Vec<F>,         // Random values used in Plonk's permutation argument.
   plonk_gammas:   Vec<F>,         // Random values used in Plonk's permutation argument.
@@ -20,7 +20,7 @@ struct ProofChallenges<F: RichField + Extendable<D>, const D: usize> {
 
 And the FRI-specific challenges are:
 
-```
+```rs
 struct FriChallenges<F: RichField + Extendable<D>, const D: usize> {
   fri_alpha: F::Extension,         // Scaling factor to combine polynomials.
   fri_betas: Vec<F::Extension>,    // Betas used in the FRI commit phase reductions.
@@ -31,7 +31,79 @@ struct FriChallenges<F: RichField + Extendable<D>, const D: usize> {
 
 ### Duplex construction
 
-TODO
+The duplex construction is similar the sponge construction, but it interleaves absorbing and squeezing. This is a very natural fit for Fiat-Shamir, as these are exactlty the operations we do:
+
+- absorb the prover's message (transcript so far);
+- then generate some challenges;
+- then the prover replies with more messsages;
+- based on which we generate more challenges;
+- and so on...
+
+We have to be careful with the details though.
+
+To have a nice API, we want an API which can absorb and generate various data types (Goldilocks elements, field extension elements, hash digests, etc).
+
+The duplex can be modelled as a state machine:
+
+- We are either in absorbing or squeezing mode.
+- In absorbing mode, we just collect inputs in a buffer
+- In squeezing mode, we have a buffer initialized by `rate` elements of the state, from which we can produce outputs, until it becomes empty; then we do a permutation which refills the buffer
+- When switching from absorbing mode to squeezing mode, we absorb the collected buffer exactly like a sponge.
+
+#### Duplex algorithm pseudo code
+
+```hs
+type State = [F]
+
+permute :: State -> State
+permute = ...
+
+rate = 8
+
+data DuplexState 
+  = Absorbing State [F]
+  | Squeezing State [F]
+
+initialDuplexState = Absorbing zeroState []
+
+-- Absorb an element
+absorb :: F -> DuplexState -> DuplexState
+absorb what duplex = case duplex of
+  Absorbing state list -> Absorbing state (list ++ [what])
+  Squeezing state _    -> Absorbing state [what]
+
+-- Squeeze an element
+squeeze :: DuplexState -> (F, DuplexState)
+squeeze duplex = case duplex of
+  Absorbing state list -> squeezing (sponge list state)
+  Squeezing state buf  -> case buf of
+    []     -> squeezing (permute state)
+    (y:ys) -> (y, Squeezing state ys)
+
+-- Helper function
+squeezing :: State -> (F, DuplexState)
+squeezing state = squeeze $ Squeezing state (extract state)
+
+-- Classic sponge in overwrite mode
+sponge :: [F] -> State -> State
+sponge = go where
+  go []   state = state
+  go list state = case splitAt rate list of
+    (this,rest) -> go rest (permute $ overwrite this state)
+
+-- Plonky2 uses "overwrite mode"
+overwrite :: [F] -> State -> State
+overwrite input state 
+  | k > rate   = error "overwrite: expecting at most `rate` elements"
+  | otherwise  = input ++ drop k state
+  where
+    k = length input
+
+-- The reverse is because Plonky2 uses `pop` (from the end of) the buffer 
+extract :: State -> [F]
+extract = reverse . take rate
+
+```
 
 ### Transcript
 
