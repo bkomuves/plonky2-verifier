@@ -13,7 +13,7 @@ When configured for zero-knowledge, each _row_ (Merkle leaf) is "blinded" by the
 
 Finally, each row is hashed (well, if the number of columns is at most 4, they are left as they are, but this should never happen in practice), and a Merkle tree is built on the top of these leaf hashes.
 
-WARNING: before building the Merkle tree, the leaves are _reorderd_ by reversing the order of the bits in the index!!!!
+WARNING: before building the Merkle tree, the leaves are _reordered_ by reversing the order of the bits in the index!!!!
 
 So we get a Merkle tree whose leaves correspond to full rows ($2^{n+3}$ leaves).
 
@@ -41,7 +41,7 @@ struct FriConfig {
 }
 ```
 
-Here the "reduction strategy" defines how to select the layers. For example it can always do 8->1 reduction (instead of the naive 2->1), or optimize and have different layers; also where to stop: If you already reduced to say a degree 3 polynomial, it's much more efficient to just send the 8 coefficients than doing 3 more folding steps.
+Here the "reduction strategy" defines how to select the layers. For example it can always do $8\to 1$ reduction (instead of the naive $2\to 1$), or optimize and have different layers; also where to stop: If you already reduced to say a degree 3 polynomial, it's much more efficient to just send the 8 coefficients than doing 3 more folding steps.
 
 The "default" `standard_recursion_config` uses rate = $1/8$ (rate_bits = 3), markle cap height = 4, proof of work (grinding) = 16 bits, query rounds = 28, reduction startegy of arity $2^4$ (16->1 folding) and final polynomial having degree (at most) $2^5$. For example for a recursive proof fitting into $2^{12}$ rows, we have the degree sequence $2^{12}\to 2^{8} \to 2^4$, with the final polynomial having degree $2^4 = 16 \le 2^5$
 

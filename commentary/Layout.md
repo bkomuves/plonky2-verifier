@@ -14,7 +14,7 @@ These 4 matrices are committed separately, as you have to commit them in separat
 
 For some of them we also need the "next row" opening at $\omega\cdot\zeta$ (namely: ``"zs"``, ``"lookup_zs"``); for the rest we don't.
 
-          constant                witness              permutation         qotient
+          constant                witness              permutation        quotient
     +---+---+----------+   +----------+--------+   +--+-------+------+   +---------+   
     | s | k |  sigmas  |   |  routed  | advice |   |zs|partial|lookup|   |         |
     | e | s |          |   |          |        |   |  |       |R     |   |         |
