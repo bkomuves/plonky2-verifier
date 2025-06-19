@@ -4,6 +4,7 @@ OUTPUT="commentary.pdf"
 
 MD_FILES="\
  Overview.md\
+ Layout.md\
  Gates.md\
  Selectors.md\
  GateConstraints.md\
