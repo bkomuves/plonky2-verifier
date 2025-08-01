@@ -5,7 +5,7 @@ Plonky2 uses a "wide" FRI commitment (committing to whole rows), and then a batc
 
 ### Initial Merkle commitment(s)
 
-To commit to a matrix of size $2^n\times M$, the columns, interpreted as values of polynomials on a multiplicative subgroup, are "low-degree extended", that is, evaluated (via an IFFT-FFT pair) on a (coset of a) larger multiplicative subgroup of size $2^{n+\mathsf{rate}^{-1}}$. In the standard configuration we have $\mathsf{rate=1}/8$, so we get 8x larger columns, that is, size $2^{n+3}$. The coset Plonky2 uses is the one shifted by the multiplicative generator of the field
+To commit to a matrix of size $2^n\times M$, the columns, interpreted as values of polynomials on a multiplicative subgroup, are "low-degree extended", that is, evaluated (via an IFFT-FFT pair) on a (coset of a) larger multiplicative subgroup of size $2^n/\mathsf{rate}=2^{n+\log_2(\mathsf{rate}^{-1})}$. In the standard configuration we have $\mathsf{rate=1}/8$, so we get 8x larger columns, that is, size $2^{n+3}$. The coset Plonky2 uses is the one shifted by the multiplicative generator of the field
 
 $$ g := \mathtt{0xc65c18b67785d900} = 14293326489335486720\in\mathbb{F} $$
 
@@ -43,7 +43,7 @@ struct FriConfig {
 
 Here the "reduction strategy" defines how to select the layers. For example it can always do $8\to 1$ reduction (instead of the naive $2\to 1$), or optimize and have different layers; also where to stop: If you already reduced to say a degree 3 polynomial, it's much more efficient to just send the 8 coefficients than doing 3 more folding steps.
 
-The "default" `standard_recursion_config` uses rate = $1/8$ (rate_bits = 3), markle cap height = 4, proof of work (grinding) = 16 bits, query rounds = 28, reduction startegy of arity $2^4$ (16->1 folding) and final polynomial having degree (at most) $2^5$. For example for a recursive proof fitting into $2^{12}$ rows, we have the degree sequence $2^{12}\to 2^{8} \to 2^4$, with the final polynomial having degree $2^4 = 16 \le 2^5$
+The "default" `standard_recursion_config` uses rate = $1/8$ (rate_bits = 3), markle cap height = 4, proof of work (grinding) = 16 bits, query rounds = 28, reduction startegy of arity $2^4$ ($16\to 1$ folding) and final polynomial having degree (at most) $2^5$. For example for a recursive proof fitting into $2^{12}$ rows, we have the degree sequence $2^{12}\to 2^{8} \to 2^4$, with the final polynomial having degree $2^4 = 16 \le 2^5$
 
 For recursion you don't want fancy reduction strategies, it's better to have something uniform.
 
@@ -117,7 +117,7 @@ where $M_0,M_1$ denote the number of terms in the sums in $P_0,P_1$, respectivel
 
 #### Commit phase
 
-Recall that we have a RS codeword of size $2^{n+(1/\rho)}$ (encoding the combined polynomial $P(X)$ above), which the prover committed to. 
+Recall that we have a RS codeword of size $2^n/\rho=2^{n+\log_2(1/\rho)}=2^{n-\log_2(\rho)}$ (encoding the combined polynomial $P(X)$ above), which the prover committed to. 
 
 The prover then repeatedly "folds" these vectors using the challenges $\beta_i$, until it gets something with low enough degree, then sends the coefficients of the corresponding polynomial in clear.
 
@@ -164,7 +164,7 @@ Then in each folding step, a whole coset is opened in the "upper layer", one ele
 
 ### Folding math details
 
-So the combined polynomial $P(x)$ is a polynomial of degree (one less than) $N=2^{n+(1/\rho)}$ over $\widetilde{\mathbb{F}}$. We first commit to the evaluations 
+So the combined polynomial $P(x)$ is a polynomial of degree (one less than) $N=2^n/\rho=2^{n+\log_2(1/\rho)}$ over $\widetilde{\mathbb{F}}$. We first commit to the evaluations 
 
 $$\big\{P(g\cdot \eta^i)\;:\;0\le i < N\big\}$$
 
